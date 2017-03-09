@@ -11,7 +11,6 @@ export class State {
     xhr.addEventListener("load", function () {
       cb.call(this);
     });
-    // xhr.open("POST", "//areweflashyet.com/tmp/wasm/service.php", true);
     xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     xhr.send(command);
@@ -62,7 +61,7 @@ export class State {
           data[i] = buffer.charCodeAt(i);
         }
         let wasm = State.findEditor("wasm");
-        wasm.editor.setValue("buffer = new Uint8Array([" + String(data) + "]);");
+        wasm.editor.setValue("var wasmCode = new Uint8Array([" + String(data) + "]);");
         cb(data, []);
       });
     });
@@ -110,7 +109,7 @@ export class State {
       return;
     }
     let harness = State.findEditor("harness.js");
-    let func = new Function("buffer", "lib", "log", harness.editor.getValue());
+    let func = new Function("wasmCode", "lib", "log", harness.editor.getValue());
     func(State.buffer, lib, function (x: any) {
       State.appendOutput(String(x));
       console.log.apply(console, arguments);
@@ -134,7 +133,10 @@ export class State {
       State.setState({
         editors: {
           "main.c": "int main() { \n  return 42;\n}",
-          "harness.js": "let m = new WebAssembly.Instance(new WebAssembly.Module(buffer));\n\nlog(m.exports.main());"
+          "harness.js":
+            "var wasmModule = new WebAssembly.Module(wasmCode);\n" +
+            "var wasmInstance = new WebAssembly.Instance(wasmModule);\n\n"+ 
+            "log(wasmInstance.exports.main());"
         }
       });
     }
