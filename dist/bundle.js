@@ -4602,9 +4602,10 @@
 /* 53 */,
 /* 54 */,
 /* 55 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var lib_1 = __webpack_require__(56);
 	var State = (function () {
 	    function State() {
 	    }
@@ -4701,8 +4702,8 @@
 	            return;
 	        }
 	        var harness = State.findEditor("harness.js");
-	        var func = new Function("buffer", "log", harness.editor.getValue());
-	        func(State.buffer, function (x) {
+	        var func = new Function("buffer", "lib", "log", harness.editor.getValue());
+	        func(State.buffer, lib_1.lib, function (x) {
 	            State.appendOutput(String(x));
 	            console.log.apply(console, arguments);
 	        });
@@ -4754,7 +4755,8 @@
 	        var xhr = new XMLHttpRequest();
 	        xhr.addEventListener("load", function () {
 	            var uri = JSON.parse(this.response).uri;
-	            State.fiddleURI = uri.substring(State.fiddleURIBase.length);
+	            uri = uri.substring(uri.lastIndexOf("/") + 1);
+	            State.fiddleURI = uri;
 	            State.app.forceUpdate();
 	            history.replaceState({}, State.fiddleURI, '?' + State.fiddleURI);
 	        });
@@ -4789,13 +4791,75 @@
 	     * Currently compiled module.
 	     */
 	    State.buffer = null;
-	    State.fiddleURIBase = "https://api.myjson.com/bins/";
 	    State.fiddleURI = "";
 	    State.currentEditor = 0;
 	    State.editors = [];
 	    return State;
 	}());
 	exports.State = State;
+
+
+/***/ },
+/* 56 */
+/***/ function(module, exports) {
+
+	"use strict";
+	function UTF8ArrayToString(u8Array, idx) {
+	    var endPtr = idx;
+	    while (u8Array[endPtr])
+	        ++endPtr;
+	    if (endPtr - idx > 16 && u8Array.subarray && UTF8Decoder) {
+	        return UTF8Decoder.decode(u8Array.subarray(idx, endPtr));
+	    }
+	    else {
+	        var u0, u1, u2, u3, u4, u5;
+	        var str = "";
+	        while (1) {
+	            u0 = u8Array[idx++];
+	            if (!u0)
+	                return str;
+	            if (!(u0 & 128)) {
+	                str += String.fromCharCode(u0);
+	                continue;
+	            }
+	            u1 = u8Array[idx++] & 63;
+	            if ((u0 & 224) == 192) {
+	                str += String.fromCharCode((u0 & 31) << 6 | u1);
+	                continue;
+	            }
+	            u2 = u8Array[idx++] & 63;
+	            if ((u0 & 240) == 224) {
+	                u0 = (u0 & 15) << 12 | u1 << 6 | u2;
+	            }
+	            else {
+	                u3 = u8Array[idx++] & 63;
+	                if ((u0 & 248) == 240) {
+	                    u0 = (u0 & 7) << 18 | u1 << 12 | u2 << 6 | u3;
+	                }
+	                else {
+	                    u4 = u8Array[idx++] & 63;
+	                    if ((u0 & 252) == 248) {
+	                        u0 = (u0 & 3) << 24 | u1 << 18 | u2 << 12 | u3 << 6 | u4;
+	                    }
+	                    else {
+	                        u5 = u8Array[idx++] & 63;
+	                        u0 = (u0 & 1) << 30 | u1 << 24 | u2 << 18 | u3 << 12 | u4 << 6 | u5;
+	                    }
+	                }
+	            }
+	            if (u0 < 65536) {
+	                str += String.fromCharCode(u0);
+	            }
+	            else {
+	                var ch = u0 - 65536;
+	                str += String.fromCharCode(55296 | ch >> 10, 56320 | ch & 1023);
+	            }
+	        }
+	    }
+	}
+	exports.lib = {
+	    UTF8ArrayToString: UTF8ArrayToString
+	};
 
 
 /***/ }

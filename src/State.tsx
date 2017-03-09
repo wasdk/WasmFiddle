@@ -2,6 +2,7 @@ declare var WebAssembly: any;
 
 import { EditorComponent } from "./components/Editor";
 import { AppComponent } from "./App";
+import { lib } from "./lib"
 
 export class State {
   static sendRequest(command: string, cb: (any)) {
@@ -109,8 +110,8 @@ export class State {
       return;
     }
     let harness = State.findEditor("harness.js");
-    let func = new Function("buffer", "log", harness.editor.getValue());
-    func(State.buffer, function (x: any) {
+    let func = new Function("buffer", "lib", "log", harness.editor.getValue());
+    func(State.buffer, lib, function (x: any) {
       State.appendOutput(String(x));
       console.log.apply(console, arguments);
     });
@@ -163,13 +164,13 @@ export class State {
     return o;
   }
 
-  static fiddleURIBase = "https://api.myjson.com/bins/";
   static fiddleURI: string = "";
   static saveForever() {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener("load", function () {
       let uri = JSON.parse(this.response).uri;
-      State.fiddleURI = uri.substring(State.fiddleURIBase.length);
+      uri = uri.substring(uri.lastIndexOf("/") + 1);
+      State.fiddleURI = uri;
       State.app.forceUpdate();
       history.replaceState({}, State.fiddleURI, '?' + State.fiddleURI);
     });
