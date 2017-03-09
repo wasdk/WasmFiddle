@@ -13,17 +13,17 @@ export class AppComponent extends React.Component<void, {
     super();
     this.installKeyboardShortcuts();
     this.state = {
-      compilerOptions: "-O3"//["-O3", "-O0", "-Os"]
+      compilerOptions: "-O3"
     } as any;
     State.app = this;
   }
 
   installKeyboardShortcuts() {
-    Mousetrap.bind(['command+shift+j', 'command+shift+k', 'command+enter', 'control+enter'], (e: any) => {
+    Mousetrap.bind(['command+shift+k'], (e: any) => {
       State.run();
       e.preventDefault();
     });
-    Mousetrap.bind(['ctrl+enter', 'command+enter', 'control+enter'], (e: any) => {
+    Mousetrap.bind(['ctrl+enter', 'command+enter'], (e: any) => {
       State.assemble();
       e.preventDefault();
     });
