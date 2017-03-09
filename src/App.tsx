@@ -19,7 +19,15 @@ export class AppComponent extends React.Component<void, {
   }
 
   installKeyboardShortcuts() {
-    Mousetrap.bind(['command+shift+k'], (e: any) => {
+    Mousetrap.bind(['command+shift+k', 'command+enter', 'control+enter'], (e: any) => {
+      State.run();
+      e.preventDefault();
+    });
+    Mousetrap.bind(['command+enter'], (e: any) => {
+      State.run();
+      e.preventDefault();
+    });
+    Mousetrap.bind(['ctrl+enter'], (e: any) => {
       State.run();
       e.preventDefault();
     });
@@ -75,7 +83,7 @@ export class AppComponent extends React.Component<void, {
               </div>
               <div className="editorContainer">
                 <div className="editorHeader"><span className="editorHeaderTitle">harness.js</span>
-                <div className="editorHeaderButtons">
+                  <div className="editorHeaderButtons">
                     <a onClick={State.runHarness} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Run</a>{' '}
                   </div>
                 </div>
@@ -88,18 +96,18 @@ export class AppComponent extends React.Component<void, {
               <ReactSplitPane split="horizontal" defaultSize="50%" onChange={this.onResize.bind(this)}>
                 <div className="editorContainer">
                   <div className="editorHeader"><span className="editorHeaderTitle">out.wast</span>
-                  <div className="editorHeaderButtons">
-                    {/*<a onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Assemble & Run</a>{' '}*/}
+                    <div className="editorHeaderButtons">
+                      {/*<a onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Assemble & Run</a>{' '}*/}
+                    </div>
                   </div>
-                </div>
                   <EditorComponent name="wast" save={false} readOnly={true} />
                 </div>
                 <div className="editorContainer">
                   <div className="editorHeader"><span className="editorHeaderTitle">out.wasm</span>
-                  <div className="editorHeaderButtons">
-                    <a onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-save"></span> Download</a>{' '}
+                    <div className="editorHeaderButtons">
+                      <a onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-save"></span> Download</a>{' '}
+                    </div>
                   </div>
-                </div>
                   <EditorComponent name="wasm" save={false} readOnly={true} />
                 </div>
               </ReactSplitPane>
