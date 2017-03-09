@@ -55,9 +55,12 @@ export class AppComponent extends React.Component<void, {
     return <div>
       <ReactSplitPane split="horizontal" allowResize={false} onChange={this.onResize.bind(this)}>
         <div className="header">
-          <span className="headerTitle">WasmFiddle {State.fiddleURI}</span>
+          <span className="headerTitle">
+            <img src="img/web-assembly-icon-white-64px.png" className="waIcon"/>{' '}
+            {State.fiddleURI}
+          </span>
           <div className="editorHeaderButtons">
-            <a onClick={State.saveForever} href="#" className="btn btn-sm btn-success"><span className="glyphicon glyphicon-share"></span> Share</a>
+            <a onClick={State.saveForever} href="#" className="btn"><span className="glyphicon glyphicon-share"></span> Share</a>
           </div>
         </div>
         <ReactSplitPane split="horizontal" defaultSize="70%" onChange={this.onResize.bind(this)}>
@@ -66,7 +69,7 @@ export class AppComponent extends React.Component<void, {
               <div className="editorContainer">
                 <div className="editorHeader"><span className="editorHeaderTitle">main.c</span>
                   <div className="editorHeaderButtons">
-                    <a title="CTRL + Shift + Return" onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Compile & Run</a>
+                    <a title="CTRL + Shift + Return" onClick={State.run} href="#" className="btn"><span className="glyphicon glyphicon-play"></span> Compile & Run</a>
                   </div>
                 </div>
                 <EditorComponent name="main.c" mode="ace/mode/c_cpp" showGutter={true} showLineNumbers={true}/>
@@ -74,7 +77,7 @@ export class AppComponent extends React.Component<void, {
               <div className="editorContainer">
                 <div className="editorHeader"><span className="editorHeaderTitle">harness.js</span>
                   <div className="editorHeaderButtons">
-                    <a title="CTRL + Return" onClick={State.runHarness} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Run</a>
+                    <a title="CTRL + Return" onClick={State.runHarness} href="#" className="btn"><span className="glyphicon glyphicon-play"></span> Run</a>
                   </div>
                 </div>
                 <EditorComponent name="harness.js" mode="ace/mode/javascript" showGutter={true} showLineNumbers={true}/>
@@ -87,7 +90,7 @@ export class AppComponent extends React.Component<void, {
                 <div className="editorContainer">
                   <div className="editorHeader"><span className="editorHeaderTitle">out.wast</span>
                     <div className="editorHeaderButtons">
-                      {/*<a onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Assemble & Run</a>{' '}*/}
+                      {/*<a onClick={State.run} href="#" className="btn"><span className="glyphicon glyphicon-play"></span> Assemble & Run</a>{' '}*/}
                     </div>
                   </div>
                   <EditorComponent name="wast" save={false} readOnly={true} />
@@ -95,7 +98,7 @@ export class AppComponent extends React.Component<void, {
                 <div className="editorContainer">
                   <div className="editorHeader"><span className="editorHeaderTitle">out.wasm</span>
                     <div className="editorHeaderButtons">
-                      <a onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-save"></span> Download</a>{' '}
+                      <a onClick={State.run} href="#" className="btn"><span className="glyphicon glyphicon-save"></span> Download</a>{' '}
                     </div>
                   </div>
                   <EditorComponent name="wasm" save={false} readOnly={true} />
@@ -104,7 +107,7 @@ export class AppComponent extends React.Component<void, {
               <div className="editorContainer">
                 <div className="editorHeader"><span className="editorHeaderTitle">out</span>
                   <div className="editorHeaderButtons">
-                    <a onClick={State.clearOutput} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-ban-circle"></span> Clear</a>{' '}
+                    <a onClick={State.clearOutput} href="#" className="btn"><span className="glyphicon glyphicon-ban-circle"></span> Clear</a>{' '}
                   </div>
                 </div>
                 <EditorComponent name="output" save={false} readOnly={true} />
