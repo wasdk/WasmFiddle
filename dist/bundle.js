@@ -45,7 +45,6 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
 	var React = __webpack_require__(1);
 	var ReactDOM = __webpack_require__(2);
 	var App_1 = __webpack_require__(3);
@@ -69,17 +68,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || (function () {
-	    var extendStatics = Object.setPrototypeOf ||
-	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-	    return function (d, b) {
-	        extendStatics(d, b);
-	        function __() { this.constructor = d; }
-	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	    };
-	})();
-	Object.defineProperty(exports, "__esModule", { value: true });
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
 	var React = __webpack_require__(1);
 	var ReactSplitPane = __webpack_require__(4);
 	var State_1 = __webpack_require__(49);
@@ -87,13 +80,12 @@
 	var AppComponent = (function (_super) {
 	    __extends(AppComponent, _super);
 	    function AppComponent() {
-	        var _this = _super.call(this) || this;
-	        _this.installKeyboardShortcuts();
-	        _this.state = {
+	        _super.call(this);
+	        this.installKeyboardShortcuts();
+	        this.state = {
 	            compilerOptions: "-O3"
 	        };
-	        State_1.State.app = _this;
-	        return _this;
+	        State_1.State.app = this;
 	    }
 	    AppComponent.prototype.installKeyboardShortcuts = function () {
 	        Mousetrap.bind(['command+shift+k'], function (e) {
@@ -128,63 +120,69 @@
 	        State_1.State.resize();
 	    };
 	    AppComponent.prototype.render = function () {
-	        return React.createElement("div", null,
-	            React.createElement(ReactSplitPane, { split: "horizontal", allowResize: false, onChange: this.onResize.bind(this) },
-	                React.createElement("div", { className: "header" },
-	                    React.createElement("span", { className: "headerTitle" },
-	                        "WasmFiddle ",
-	                        State_1.State.fiddleURI),
-	                    React.createElement("div", { className: "editorHeaderButtons" },
-	                        React.createElement("a", { onClick: State_1.State.saveForever, href: "#", className: "btn btn-sm btn-success" },
-	                            React.createElement("span", { className: "glyphicon glyphicon-share" }),
-	                            " Share"))),
-	                React.createElement(ReactSplitPane, { split: "vertical", defaultSize: "50%", onChange: this.onResize.bind(this) },
-	                    React.createElement("div", null,
-	                        React.createElement(ReactSplitPane, { split: "horizontal", defaultSize: "50%", onChange: this.onResize.bind(this) },
-	                            React.createElement("div", { className: "editorContainer" },
-	                                React.createElement("div", { className: "editorHeader" },
-	                                    React.createElement("span", { className: "editorHeaderTitle" }, "main.c"),
-	                                    React.createElement("div", { className: "editorHeaderButtons" },
-	                                        React.createElement("a", { onClick: State_1.State.run, href: "#", className: "btn btn-xs btn-success" },
-	                                            React.createElement("span", { className: "glyphicon glyphicon-play" }),
-	                                            " Compile & Run"),
-	                                        ' ')),
-	                                React.createElement(Editor_1.EditorComponent, { name: "main.c", mode: "ace/mode/c_cpp" })),
-	                            React.createElement("div", { className: "editorContainer" },
-	                                React.createElement("div", { className: "editorHeader" },
-	                                    React.createElement("span", { className: "editorHeaderTitle" }, "harness.js"),
-	                                    React.createElement("div", { className: "editorHeaderButtons" },
-	                                        React.createElement("a", { onClick: State_1.State.runHarness, href: "#", className: "btn btn-xs btn-success" },
-	                                            React.createElement("span", { className: "glyphicon glyphicon-play" }),
-	                                            " Run"),
-	                                        ' ')),
-	                                React.createElement(Editor_1.EditorComponent, { name: "harness.js", mode: "ace/mode/javascript" })))),
-	                    React.createElement("div", null,
-	                        React.createElement(ReactSplitPane, { split: "horizontal", defaultSize: "50%", onChange: this.onResize.bind(this) },
-	                            React.createElement(ReactSplitPane, { split: "horizontal", defaultSize: "50%", onChange: this.onResize.bind(this) },
-	                                React.createElement("div", { className: "editorContainer" },
-	                                    React.createElement("div", { className: "editorHeader" },
-	                                        React.createElement("span", { className: "editorHeaderTitle" }, "out.wast"),
-	                                        React.createElement("div", { className: "editorHeaderButtons" })),
-	                                    React.createElement(Editor_1.EditorComponent, { name: "wast", save: false, readOnly: true })),
-	                                React.createElement("div", { className: "editorContainer" },
-	                                    React.createElement("div", { className: "editorHeader" },
-	                                        React.createElement("span", { className: "editorHeaderTitle" }, "out.wasm"),
-	                                        React.createElement("div", { className: "editorHeaderButtons" },
-	                                            React.createElement("a", { onClick: State_1.State.run, href: "#", className: "btn btn-xs btn-success" },
-	                                                React.createElement("span", { className: "glyphicon glyphicon-save" }),
-	                                                " Download"),
-	                                            ' ')),
-	                                    React.createElement(Editor_1.EditorComponent, { name: "wasm", save: false, readOnly: true }))),
-	                            React.createElement("div", { className: "editorContainer" },
-	                                React.createElement("div", { className: "editorHeader" },
-	                                    React.createElement("span", { className: "editorHeaderTitle" }, "out"),
-	                                    React.createElement("div", { className: "editorHeaderButtons" },
-	                                        React.createElement("a", { onClick: State_1.State.clearOutput, href: "#", className: "btn btn-xs btn-success" },
-	                                            React.createElement("span", { className: "glyphicon glyphicon-ban-circle" }),
-	                                            " Clear"),
-	                                        ' ')),
-	                                React.createElement(Editor_1.EditorComponent, { name: "output", save: false, readOnly: true })))))));
+	        { }
+	        { }
+	        return React.createElement("div", null, 
+	            React.createElement(ReactSplitPane, {split: "horizontal", allowResize: false, onChange: this.onResize.bind(this)}, 
+	                React.createElement("div", {className: "header"}, 
+	                    React.createElement("span", {className: "headerTitle"}, 
+	                        "WasmFiddle ", 
+	                        State_1.State.fiddleURI), 
+	                    React.createElement("div", {className: "editorHeaderButtons"}, 
+	                        React.createElement("a", {onClick: State_1.State.saveForever, href: "#", className: "btn btn-sm btn-success"}, 
+	                            React.createElement("span", {className: "glyphicon glyphicon-share"}), 
+	                            " Share")
+	                    )), 
+	                React.createElement(ReactSplitPane, {split: "horizontal", defaultSize: "70%", onChange: this.onResize.bind(this)}, 
+	                    React.createElement("div", null, 
+	                        React.createElement(ReactSplitPane, {split: "vertical", defaultSize: "50%", onChange: this.onResize.bind(this)}, 
+	                            React.createElement("div", {className: "editorContainer"}, 
+	                                React.createElement("div", {className: "editorHeader"}, 
+	                                    React.createElement("span", {className: "editorHeaderTitle"}, "main.c"), 
+	                                    React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                        React.createElement("a", {onClick: State_1.State.run, href: "#", className: "btn btn-xs btn-success"}, 
+	                                            React.createElement("span", {className: "glyphicon glyphicon-play"}), 
+	                                            " Compile & Run"), 
+	                                        ' ')), 
+	                                React.createElement(Editor_1.EditorComponent, {name: "main.c", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true})), 
+	                            React.createElement("div", {className: "editorContainer"}, 
+	                                React.createElement("div", {className: "editorHeader"}, 
+	                                    React.createElement("span", {className: "editorHeaderTitle"}, "harness.js"), 
+	                                    React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                        React.createElement("a", {onClick: State_1.State.runHarness, href: "#", className: "btn btn-xs btn-success"}, 
+	                                            React.createElement("span", {className: "glyphicon glyphicon-play"}), 
+	                                            " Run"), 
+	                                        ' ')), 
+	                                React.createElement(Editor_1.EditorComponent, {name: "harness.js", mode: "ace/mode/javascript", showGutter: true, showLineNumbers: true})))
+	                    ), 
+	                    React.createElement("div", null, 
+	                        React.createElement(ReactSplitPane, {split: "vertical", defaultSize: "50%", onChange: this.onResize.bind(this)}, 
+	                            React.createElement(ReactSplitPane, {split: "vertical", defaultSize: "50%", onChange: this.onResize.bind(this)}, 
+	                                React.createElement("div", {className: "editorContainer"}, 
+	                                    React.createElement("div", {className: "editorHeader"}, 
+	                                        React.createElement("span", {className: "editorHeaderTitle"}, "out.wast"), 
+	                                        React.createElement("div", {className: "editorHeaderButtons"})), 
+	                                    React.createElement(Editor_1.EditorComponent, {name: "wast", save: false, readOnly: true})), 
+	                                React.createElement("div", {className: "editorContainer"}, 
+	                                    React.createElement("div", {className: "editorHeader"}, 
+	                                        React.createElement("span", {className: "editorHeaderTitle"}, "out.wasm"), 
+	                                        React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                            React.createElement("a", {onClick: State_1.State.run, href: "#", className: "btn btn-xs btn-success"}, 
+	                                                React.createElement("span", {className: "glyphicon glyphicon-save"}), 
+	                                                " Download"), 
+	                                            ' ')), 
+	                                    React.createElement(Editor_1.EditorComponent, {name: "wasm", save: false, readOnly: true}))), 
+	                            React.createElement("div", {className: "editorContainer"}, 
+	                                React.createElement("div", {className: "editorHeader"}, 
+	                                    React.createElement("span", {className: "editorHeaderTitle"}, "out"), 
+	                                    React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                        React.createElement("a", {onClick: State_1.State.clearOutput, href: "#", className: "btn btn-xs btn-success"}, 
+	                                            React.createElement("span", {className: "glyphicon glyphicon-ban-circle"}), 
+	                                            " Clear"), 
+	                                        ' ')), 
+	                                React.createElement(Editor_1.EditorComponent, {name: "output", save: false, readOnly: true})))
+	                    )))
+	        );
 	    };
 	    return AppComponent;
 	}(React.Component));
@@ -782,7 +780,7 @@
 	            }
 	
 	            // add prefixes to properties
-	            if (this._requiresPrefix.hasOwnProperty(property)) {
+	            if (this._requiresPrefix[property]) {
 	              style[this._browserInfo.jsPrefix + (0, _capitalizeString2.default)(property)] = value;
 	              if (!this._keepUnprefixed) {
 	                delete style[property];
@@ -877,7 +875,7 @@
 	  }
 	
 	  for (var browser in browserByCanIuseAlias) {
-	    if (browserInfo.hasOwnProperty(browser)) {
+	    if (browserInfo[browser]) {
 	      return browserByCanIuseAlias[browser];
 	    }
 	  }
@@ -892,7 +890,7 @@
 	  var browserInfo = _bowser2.default._detect(userAgent);
 	
 	  for (var browser in prefixByBrowser) {
-	    if (browserInfo.hasOwnProperty(browser)) {
+	    if (browserInfo[browser]) {
 	      var prefix = prefixByBrowser[browser];
 	
 	      browserInfo.jsPrefix = prefix;
@@ -1856,10 +1854,10 @@
 	        style.WebkitBoxDirection = 'normal';
 	      }
 	    }
-	    if (property === 'display' && alternativeValues.hasOwnProperty(value)) {
+	    if (property === 'display' && alternativeValues[value]) {
 	      return (0, _getPrefixedValue2.default)(cssPrefix + alternativeValues[value], value, keepUnprefixed);
 	    }
-	    if (alternativeProps.hasOwnProperty(property)) {
+	    if (alternativeProps[property]) {
 	      style[alternativeProps[property]] = alternativeValues[value] || value;
 	    }
 	  }
@@ -1890,7 +1888,7 @@
 	      cssPrefix = _ref.cssPrefix,
 	      keepUnprefixed = _ref.keepUnprefixed;
 	
-	  if (typeof value === 'string' && values.test(value) && (browserName === 'firefox' && browserVersion < 16 || browserName === 'chrome' && browserVersion < 26 || (browserName === 'safari' || browserName === 'ios_saf') && browserVersion < 7 || (browserName === 'opera' || browserName === 'op_mini') && browserVersion < 12.1 || browserName === 'android' && browserVersion < 4.4 || browserName === 'and_uc')) {
+	  if (typeof value === 'string' && value.match(values) !== null && (browserName === 'firefox' && browserVersion < 16 || browserName === 'chrome' && browserVersion < 26 || (browserName === 'safari' || browserName === 'ios_saf') && browserVersion < 7 || (browserName === 'opera' || browserName === 'op_mini') && browserVersion < 12.1 || browserName === 'android' && browserVersion < 4.4 || browserName === 'and_uc')) {
 	    return (0, _getPrefixedValue2.default)(cssPrefix + value, value, keepUnprefixed);
 	  }
 	}
@@ -1994,7 +1992,7 @@
 	
 	  // This might change in the future
 	  // Keep an eye on it
-	  if (properties.hasOwnProperty(property) && values.hasOwnProperty(value)) {
+	  if (properties[property] && values[value]) {
 	    return (0, _getPrefixedValue2.default)(cssPrefix + value, value, keepUnprefixed);
 	  }
 	}
@@ -2036,7 +2034,7 @@
 	      keepUnprefixed = _ref.keepUnprefixed,
 	      requiresPrefix = _ref.requiresPrefix;
 	
-	  if (typeof value === 'string' && properties.hasOwnProperty(property)) {
+	  if (typeof value === 'string' && properties[property]) {
 	    var _ret = function () {
 	      // memoize the prefix array for later use
 	      if (!requiresPrefixDashCased) {
@@ -2241,7 +2239,7 @@
 	          style[property] = _processedValue;
 	        }
 	
-	        style = (0, _prefixProperty2.default)(prefixMap, property, style);
+	        (0, _prefixProperty2.default)(prefixMap, property, style);
 	      }
 	    }
 	
@@ -2270,28 +2268,13 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function prefixProperty(prefixProperties, property, style) {
-	  if (!prefixProperties.hasOwnProperty(property)) {
-	    return style;
-	  }
+	  var requiredPrefixes = prefixProperties[property];
 	
-	  // We need to preserve the order of the styles while inserting new prefixed
-	  // styles. Object order is not guaranteed, but this is better than nothing.
-	  // Note that this is brittle and is likely to break in older versions of
-	  // Node (e.g. Node 4).
-	  var newStyle = {};
-	  Object.keys(style).forEach(function (styleProperty) {
-	    if (styleProperty === property) {
-	      // We've found the style we need to prefix.
-	      var requiredPrefixes = prefixProperties[property];
-	      for (var i = 0, len = requiredPrefixes.length; i < len; ++i) {
-	        newStyle[requiredPrefixes[i] + (0, _capitalizeString2.default)(property)] = style[property];
-	      }
+	  if (requiredPrefixes) {
+	    for (var i = 0, len = requiredPrefixes.length; i < len; ++i) {
+	      style[requiredPrefixes[i] + (0, _capitalizeString2.default)(property)] = style[property];
 	    }
-	
-	    newStyle[styleProperty] = style[styleProperty];
-	  });
-	
-	  return newStyle;
+	  }
 	}
 	module.exports = exports['default'];
 
@@ -2330,7 +2313,7 @@
 	};
 	
 	function cursor(property, value) {
-	  if (property === 'cursor' && values.hasOwnProperty(value)) {
+	  if (property === 'cursor' && values[value]) {
 	    return prefixes.map(function (prefix) {
 	      return prefix + value;
 	    });
@@ -2428,7 +2411,7 @@
 	};
 	
 	function flex(property, value) {
-	  if (property === 'display' && values.hasOwnProperty(value)) {
+	  if (property === 'display' && values[value]) {
 	    return ['-webkit-box', '-moz-box', '-ms-' + value + 'box', '-webkit-' + value, value];
 	  }
 	}
@@ -2472,7 +2455,7 @@
 	      style.WebkitBoxDirection = 'normal';
 	    }
 	  }
-	  if (alternativeProps.hasOwnProperty(property)) {
+	  if (alternativeProps[property]) {
 	    style[alternativeProps[property]] = alternativeValues[value] || value;
 	  }
 	}
@@ -2500,7 +2483,7 @@
 	var values = /linear-gradient|radial-gradient|repeating-linear-gradient|repeating-radial-gradient/;
 	
 	function gradient(property, value) {
-	  if (typeof value === 'string' && !(0, _isPrefixedValue2.default)(value) && values.test(value)) {
+	  if (typeof value === 'string' && !(0, _isPrefixedValue2.default)(value) && value.match(values) !== null) {
 	    return prefixes.map(function (prefix) {
 	      return prefix + value;
 	    });
@@ -2583,7 +2566,7 @@
 	};
 	
 	function sizing(property, value) {
-	  if (properties.hasOwnProperty(property) && values.hasOwnProperty(value)) {
+	  if (properties[property] && values[value]) {
 	    return prefixes.map(function (prefix) {
 	      return prefix + value;
 	    });
@@ -2663,11 +2646,11 @@
 	
 	function transition(property, value, style, propertyPrefixMap) {
 	  // also check for already prefixed transitions
-	  if (typeof value === 'string' && properties.hasOwnProperty(property)) {
+	  if (typeof value === 'string' && properties[property]) {
 	    var outputValue = prefixValue(value, propertyPrefixMap);
 	    // if the property is already prefixed
 	    var webkitOutput = outputValue.split(/,(?![^()]*(?:\([^()]*\))?\))/g).filter(function (val) {
-	      return !/-moz-|-ms-/.test(val);
+	      return val.match(/-moz-|-ms-/) === null;
 	    }).join(',');
 	
 	    if (property.indexOf('Webkit') > -1) {
@@ -2675,7 +2658,7 @@
 	    }
 	
 	    var mozOutput = outputValue.split(/,(?![^()]*(?:\([^()]*\))?\))/g).filter(function (val) {
-	      return !/-webkit-|-ms-/.test(val);
+	      return val.match(/-webkit-|-ms-/) === null;
 	    }).join(',');
 	
 	    if (property.indexOf('Moz') > -1) {
@@ -4537,7 +4520,6 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
 	var lib_1 = __webpack_require__(50);
 	var State = (function () {
 	    function State() {
@@ -4580,6 +4562,10 @@
 	        var action = "c2wast";
 	        options = encodeURIComponent(options + " --clean");
 	        State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
+	            if (!this.responseText) {
+	                State.appendOutput("Something went wrong while compiling " + action + ".");
+	                return;
+	            }
 	            var wast = State.findEditor("wast");
 	            var annotations = State.getAnnotations(this.responseText);
 	            if (annotations.length) {
@@ -4588,8 +4574,7 @@
 	            }
 	            wast.editor.setValue(this.responseText, -1);
 	            src = encodeURIComponent(this.responseText).replace('%20', '+');
-	            var action = "wast2wasm";
-	            State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
+	            State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
 	                var buffer = atob(this.responseText.split('\n', 2)[1]);
 	                var data = new Uint8Array(buffer.length);
 	                for (var i = 0; i < buffer.length; i++) {
@@ -4618,8 +4603,8 @@
 	        var main = State.findEditor("main.c");
 	        var options = State.app.state.compilerOptions;
 	        State.compileToWasm(main.editor.getValue(), options, function (result, annotations) {
+	            main.editor.getSession().clearAnnotations();
 	            if (annotations.length) {
-	                main.editor.getSession().clearAnnotations();
 	                main.editor.getSession().setAnnotations(annotations);
 	                State.appendOutput(String(result));
 	                return;
@@ -4634,11 +4619,12 @@
 	            return;
 	        }
 	        var harness = State.findEditor("harness.js");
-	        var func = new Function("wasmCode", "lib", "log", harness.editor.getValue());
-	        func(State.buffer, lib_1.lib, function (x) {
+	        // |buffer| is needed for backward compatibility
+	        var func = new Function("wasmCode", "buffer", "lib", "log", "canvas", harness.editor.getValue());
+	        func(State.buffer, State.buffer, lib_1.lib, function (x) {
 	            State.appendOutput(String(x));
 	            console.log.apply(console, arguments);
-	        });
+	        }, State.app.canvas);
 	    };
 	    State.clearOutput = function () {
 	        var output = State.findEditor("output");
@@ -4721,15 +4707,15 @@
 	    };
 	    State.removeEditor = function (e) {
 	    };
+	    /**
+	     * Currently compiled module.
+	     */
+	    State.buffer = null;
+	    State.fiddleURI = "";
+	    State.currentEditor = 0;
+	    State.editors = [];
 	    return State;
 	}());
-	/**
-	 * Currently compiled module.
-	 */
-	State.buffer = null;
-	State.fiddleURI = "";
-	State.currentEditor = 0;
-	State.editors = [];
 	exports.State = State;
 
 
@@ -4738,7 +4724,6 @@
 /***/ function(module, exports) {
 
 	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
 	function UTF8ArrayToString(u8Array, idx) {
 	    var endPtr = idx;
 	    while (u8Array[endPtr])
@@ -4747,7 +4732,7 @@
 	        return UTF8Decoder.decode(u8Array.subarray(idx, endPtr));
 	    }
 	    else {
-	        var u0, u1, u2, u3, u4, u5;
+	        var u0 = 0, u1 = 0, u2 = 0, u3 = 0, u4 = 0, u5 = 0;
 	        var str = "";
 	        while (1) {
 	            u0 = u8Array[idx++];
@@ -4802,23 +4787,17 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || (function () {
-	    var extendStatics = Object.setPrototypeOf ||
-	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-	    return function (d, b) {
-	        extendStatics(d, b);
-	        function __() { this.constructor = d; }
-	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	    };
-	})();
-	Object.defineProperty(exports, "__esModule", { value: true });
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
 	var React = __webpack_require__(1);
 	var State_1 = __webpack_require__(49);
 	var EditorComponent = (function (_super) {
 	    __extends(EditorComponent, _super);
 	    function EditorComponent() {
-	        return _super !== null && _super.apply(this, arguments) || this;
+	        _super.apply(this, arguments);
 	    }
 	    EditorComponent.prototype.componentWillUnmount = function () {
 	        State_1.State.removeEditor(this);
@@ -4836,8 +4815,10 @@
 	        editor.setOptions({
 	            wrap: true,
 	            enableBasicAutocompletion: true,
-	            enableSnippets: true,
-	            enableLiveAutocompletion: true
+	            // enableSnippets: true,
+	            // enableLiveAutocompletion: true,
+	            showLineNumbers: this.props.showLineNumbers,
+	            showGutter: this.props.showGutter
 	        });
 	        editor.$blockScrolling = Infinity;
 	        editor.renderer.setScrollMargin(10, 10);
@@ -4871,17 +4852,19 @@
 	    };
 	    EditorComponent.prototype.render = function () {
 	        var _this = this;
-	        return React.createElement("div", { ref: function (self) { return _this.container = self; }, className: "editorBody" });
+	        return React.createElement("div", {ref: function (self) { return _this.container = self; }, className: "editorBody"});
+	    };
+	    EditorComponent.defaultProps = {
+	        // source: "",
+	        mode: "",
+	        action: "",
+	        save: true,
+	        readOnly: false,
+	        showGutter: false,
+	        showLineNumbers: false
 	    };
 	    return EditorComponent;
 	}(React.Component));
-	EditorComponent.defaultProps = {
-	    // source: "",
-	    mode: "",
-	    action: "",
-	    save: true,
-	    readOnly: false
-	};
 	exports.EditorComponent = EditorComponent;
 
 

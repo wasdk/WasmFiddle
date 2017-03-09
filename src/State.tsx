@@ -112,8 +112,9 @@ export class State {
       return;
     }
     let harness = State.findEditor("harness.js");
-    let func = new Function("wasmCode", "lib", "log", "canvas", harness.editor.getValue());
-    func(State.buffer, lib, function (x: any) {
+    // |buffer| is needed for backward compatibility
+    let func = new Function("wasmCode", "buffer", "lib", "log", "canvas", harness.editor.getValue());
+    func(State.buffer, State.buffer, lib, function (x: any) {
       State.appendOutput(String(x));
       console.log.apply(console, arguments);
     }, State.app.canvas);
