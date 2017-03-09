@@ -45,6 +45,10 @@ export class State {
     let action = "c2wast";
     options = encodeURIComponent(options + " --clean");
     State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
+      if (!this.responseText) {
+        State.appendOutput("Something went wrong while compiling " + action + ".");
+        return;
+      }
       let wast = State.findEditor("wast");
       let annotations = State.getAnnotations(this.responseText);
       if (annotations.length) {
@@ -53,8 +57,7 @@ export class State {
       }
       wast.editor.setValue(this.responseText, -1);
       src = encodeURIComponent(this.responseText).replace('%20', '+');
-      let action = "wast2wasm";
-      State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
+      State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
         var buffer = atob(this.responseText.split('\n', 2)[1]);
         var data = new Uint8Array(buffer.length);
         for (var i = 0; i < buffer.length; i++) {
@@ -92,8 +95,8 @@ export class State {
     let main = State.findEditor("main.c");
     let options = State.app.state.compilerOptions;
     State.compileToWasm(main.editor.getValue(), options, (result: Uint8Array | string, annotations: any[]) => {
+      main.editor.getSession().clearAnnotations();
       if (annotations.length) {
-        main.editor.getSession().clearAnnotations();
         main.editor.getSession().setAnnotations(annotations);
         State.appendOutput(String(result));
         return;
@@ -109,11 +112,11 @@ export class State {
       return;
     }
     let harness = State.findEditor("harness.js");
-    let func = new Function("wasmCode", "lib", "log", harness.editor.getValue());
+    let func = new Function("wasmCode", "lib", "log", "canvas", harness.editor.getValue());
     func(State.buffer, lib, function (x: any) {
       State.appendOutput(String(x));
       console.log.apply(console, arguments);
-    });
+    }, State.app.canvas);
   }
 
   static clearOutput() {
@@ -135,7 +138,7 @@ export class State {
           "main.c": "int main() { \n  return 42;\n}",
           "harness.js":
             "var wasmModule = new WebAssembly.Module(wasmCode);\n" +
-            "var wasmInstance = new WebAssembly.Instance(wasmModule);\n\n"+ 
+            "var wasmInstance = new WebAssembly.Instance(wasmModule);\n\n"+
             "log(wasmInstance.exports.main());"
         }
       });

@@ -6,7 +6,7 @@ function UTF8ArrayToString(u8Array: Uint8Array, idx: number) {
   if (endPtr - idx > 16 && u8Array.subarray && UTF8Decoder) {
     return UTF8Decoder.decode(u8Array.subarray(idx, endPtr))
   } else {
-    var u0, u1, u2, u3, u4, u5;
+    var u0 = 0, u1 = 0, u2 = 0, u3 = 0, u4 = 0, u5 = 0;
     var str = "";
     while (1) {
       u0 = u8Array[idx++];

@@ -9,9 +9,11 @@ declare var ace: any;
 export class EditorComponent extends React.Component<{
   save?: boolean;
   readOnly?: boolean;
-  name: string,
-  mode?: string,
-  action?: string
+  name: string;
+  mode?: string;
+  action?: string;
+  showGutter?: boolean;
+  showLineNumbers?: boolean;
 }, void> {
   container: HTMLDivElement;
   public editor: any;
@@ -20,7 +22,9 @@ export class EditorComponent extends React.Component<{
     mode: "",
     action: "",
     save: true,
-    readOnly: false
+    readOnly: false,
+    showGutter: false,
+    showLineNumbers: false
   };
   componentWillUnmount() {
     State.removeEditor(this);
@@ -38,8 +42,10 @@ export class EditorComponent extends React.Component<{
     editor.setOptions({
       wrap: true,
       enableBasicAutocompletion: true,
-      enableSnippets: true,
-      enableLiveAutocompletion: true
+      // enableSnippets: true,
+      // enableLiveAutocompletion: true,
+      showLineNumbers: this.props.showLineNumbers,
+      showGutter: this.props.showGutter
     });
     editor.$blockScrolling = Infinity;
     editor.renderer.setScrollMargin(10, 10);
