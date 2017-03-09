@@ -58,6 +58,11 @@ export class EditorComponent extends React.Component<{
         }
       },
       {
+        bindKey: { win: "Ctrl-Enter", mac: "Command-Enter" }, exec: function () {
+          State.assemble();
+        }
+      },
+      {
         bindKey: { win: "Ctrl-Shift-.", mac: "Command-Shift-." }, exec: function () {
           State.nextPane(1);
         }
@@ -76,6 +81,6 @@ export class EditorComponent extends React.Component<{
 
   }
   render(): any {
-    return <div ref={(self: any) => this.container = self} className="editorBody"/>
+    return <div ref={(self: any) => this.container = self} className="editorBody" />
   }
 }

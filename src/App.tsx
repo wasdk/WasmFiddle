@@ -13,22 +13,18 @@ export class AppComponent extends React.Component<void, {
     super();
     this.installKeyboardShortcuts();
     this.state = {
-      compilerOptions: "-O3"
+      compilerOptions: "-O3"//["-O3", "-O0", "-Os"]
     } as any;
     State.app = this;
   }
 
   installKeyboardShortcuts() {
-    Mousetrap.bind(['command+shift+k', 'command+enter', 'control+enter'], (e: any) => {
+    Mousetrap.bind(['command+shift+j', 'command+shift+k', 'command+enter', 'control+enter'], (e: any) => {
       State.run();
       e.preventDefault();
     });
-    Mousetrap.bind(['command+enter'], (e: any) => {
-      State.run();
-      e.preventDefault();
-    });
-    Mousetrap.bind(['ctrl+enter'], (e: any) => {
-      State.run();
+    Mousetrap.bind(['ctrl+enter', 'command+enter', 'control+enter'], (e: any) => {
+      State.assemble();
       e.preventDefault();
     });
     Mousetrap.bind(['command+shift+s'], (e: any) => {
@@ -63,11 +59,11 @@ export class AppComponent extends React.Component<void, {
     return <div>
       <ReactSplitPane split="horizontal" allowResize={false} onChange={this.onResize.bind(this)}>
         <div className="header">
+          <a onClick={State.saveForever} href="#" className="btn btn-sm btn-success"><span className="glyphicon glyphicon-save"></span> Save</a>{' '}
           <span className="headerTitle">WasmFiddle {State.fiddleURI}</span>
           <div className="editorHeaderButtons">
             <a onClick={State.saveForever} href="#" className="btn btn-sm btn-success"><span className="glyphicon glyphicon-share"></span> Share</a>
           </div>
-          {/*<a onClick={State.save} href="#" className="btn btn-sm btn-success"><span className="glyphicon glyphicon-save"></span> Save</a>{' '}*/}
           {/*<input value={this.state.compilerOptions} onChange={this.compilerOptionsChanged.bind(this)} type="text" className="input-sm" placeholder="Search" />*/}
         </div>
         <ReactSplitPane split="vertical" defaultSize="50%" onChange={this.onResize.bind(this)}>
@@ -92,15 +88,15 @@ export class AppComponent extends React.Component<void, {
             </ReactSplitPane>
           </div>
           <div>
-            <ReactSplitPane split="horizontal" defaultSize="50%" onChange={this.onResize.bind(this)}>
-              <ReactSplitPane split="horizontal" defaultSize="50%" onChange={this.onResize.bind(this)}>
+            <ReactSplitPane split="horizontal" defaultSize="60%" onChange={this.onResize.bind(this)}>
+              <ReactSplitPane split="horizontal" defaultSize="80%" onChange={this.onResize.bind(this)}>
                 <div className="editorContainer">
                   <div className="editorHeader"><span className="editorHeaderTitle">out.wast</span>
                     <div className="editorHeaderButtons">
-                      {/*<a onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Assemble & Run</a>{' '}*/}
+                      <a onClick={State.assemble} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Assemble & Run</a>{' '}
                     </div>
                   </div>
-                  <EditorComponent name="wast" save={false} readOnly={true} />
+                  <EditorComponent name="wast" />
                 </div>
                 <div className="editorContainer">
                   <div className="editorHeader"><span className="editorHeaderTitle">out.wasm</span>

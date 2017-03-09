@@ -41,30 +41,36 @@ export class State {
     return annotations;
   }
 
-  static compileToWasm(src: string, options: string, cb: (buffer: Uint8Array, annotations?: any[]) => void) {
+  static wastToWasm(src: string) {
+    let wast = State.findEditor("wast");
+    if (src) wast.editor.setValue(src);
+    else src = wast.editor.getValue();
+    src = encodeURIComponent(src).replace('%20', '+');
+    let action = "wast2wasm";
+    // todo: Locally via binaryan.JS
+    State.sendRequest("input=" + src + "&action=" + action, function () {
+      var buffer = atob(this.responseText.split('\n', 2)[1]);
+      var data = new Uint8Array(buffer.length);
+      for (var i = 0; i < buffer.length; i++) {
+        data[i] = buffer.charCodeAt(i);
+      }
+      let wasm = State.findEditor("wasm");
+      wasm.editor.setValue("buffer = new Uint8Array([" + String(data) + "]);");
+      State.buffer = data
+      State.runHarness()
+    });
+  }
+
+
+  static cToWasm(src: string, options: string, cb: (buffer: Uint8Array, annotations?: any[]) => void) {
     src = encodeURIComponent(src).replace('%20', '+');
     let action = "c2wast";
     options = encodeURIComponent(options + " --clean");
     State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
-      let wast = State.findEditor("wast");
       let annotations = State.getAnnotations(this.responseText);
-      if (annotations.length) {
+      if (annotations.length)
         cb(this.responseText, annotations);
-        return;
-      }
-      wast.editor.setValue(this.responseText, -1);
-      src = encodeURIComponent(this.responseText).replace('%20', '+');
-      let action = "wast2wasm";
-      State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
-        var buffer = atob(this.responseText.split('\n', 2)[1]);
-        var data = new Uint8Array(buffer.length);
-        for (var i = 0; i < buffer.length; i++) {
-          data[i] = buffer.charCodeAt(i);
-        }
-        let wasm = State.findEditor("wasm");
-        wasm.editor.setValue("buffer = new Uint8Array([" + String(data) + "]);");
-        cb(data, []);
-      });
+      State.wastToWasm(this.responseText);
     });
   }
 
@@ -92,16 +98,22 @@ export class State {
   static run() {
     let main = State.findEditor("main.c");
     let options = State.app.state.compilerOptions;
-    State.compileToWasm(main.editor.getValue(), options, (result: Uint8Array | string, annotations: any[]) => {
-      if (annotations.length) {
-        main.editor.getSession().clearAnnotations();
-        main.editor.getSession().setAnnotations(annotations);
-        State.appendOutput(String(result));
-        return;
-      }
-      State.buffer = result as Uint8Array;
-      State.runHarness();
-    });
+    State.cToWasm(main.editor.getValue(), options, State.annotate);
+  }
+
+  static annotate(result: Uint8Array | string, annotations: any[]) {
+    let main = State.findEditor("main.c");
+    if (annotations.length) {
+      main.editor.getSession().clearAnnotations();
+      main.editor.getSession().setAnnotations(annotations);
+      State.appendOutput(String(result));
+      return;
+    }
+  }
+
+  static assemble() {
+    State.appendOutput("assemble wast2wasm")
+    State.wastToWasm(null)
   }
 
   static runHarness() {
@@ -134,7 +146,9 @@ export class State {
       State.setState({
         editors: {
           "main.c": "int main() { \n  return 42;\n}",
-          "harness.js": "let m = new WebAssembly.Instance(new WebAssembly.Module(buffer));\n\nlog(m.exports.main());"
+          "harness.js": "let m = new WebAssembly.Instance(new WebAssembly.Module(buffer));\n\nlog(m.exports.main());",
+          "wast": ";; generated on compilation",
+          "out.wast": ";; generated on compile"
         }
       });
     }
