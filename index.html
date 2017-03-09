@@ -3,13 +3,15 @@
 
 <head>
     <meta charset="UTF-8" />
+    <link type="text/css" rel="stylesheet" href="src/App.css" />
     <title>Hello WasmFiddle!</title>
 </head>
 
 <body>
     <div id="app"></div>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
 
     <!-- Dependencies -->
     <script src="./lib/react.js"></script>
@@ -29,127 +31,6 @@
             require.config({ paths: { 'vs': 'https://www.mycdn.com/monaco-editor/0.7.0/min/vs' }});
         </script>-->
 
-    <style>
-        .Resizer {
-            border-color: #2F3129;
-            /*opacity: .2;*/
-            z-index: 1;
-            -moz-box-sizing: border-box;
-            -webkit-box-sizing: border-box;
-            box-sizing: border-box;
-            -moz-background-clip: padding;
-            -webkit-background-clip: padding;
-            background-clip: padding-box;
-        }
-
-        .Resizer:hover {
-            -webkit-transition: all 2s ease;
-            transition: all 2s ease;
-        }
-
-
-
-        .Resizer.horizontal {
-            height: 11px;
-            margin: -3px 0;
-            /*border-top: 5px solid rgba(255, 255, 255, 0);*/
-            /*border-bottom: 5px solid rgba(255, 255, 255, 0);*/
-            cursor: row-resize;
-            width: 100%;
-        }
-
-
-
-        .Resizer.horizontal:hover {
-            border-top: 5px solid rgba(0, 0, 0, 0.5);
-            border-bottom: 5px solid rgba(0, 0, 0, 0.5);
-        }
-
-
-
-        .Resizer.vertical {
-            border-color: #2F3129;
-            width: 11px;
-            margin: 0 -5px;
-            /*border-left: 5px solid rgba(255, 255, 255, 0);*/
-            /*border-right: 5px solid rgba(255, 255, 255, 0);*/
-            cursor: col-resize;
-        }
-
-
-
-        .Resizer.vertical:hover {
-            border-left: 5px solid rgba(0, 0, 0, 0.5);
-            border-right: 5px solid rgba(0, 0, 0, 0.5);
-        }
-
-
-        Resizer.disabled {
-            cursor: not-allowed;
-        }
-
-
-        Resizer.disabled:hover {
-            border-color: transparent;
-        }
-
-        body {
-            margin: 0px;
-        }
-
-        .editorContainer {
-            width: 100%;
-            height: 100%;
-        }
-        .editorHeader {
-            padding: 4px;
-            background: #2F3129;
-            color: white;
-            width: 100%;
-            height: 32px;
-            font-size: 12px;
-        }
-        .editorHeaderTitle {
-            font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
-        }
-        .headerTitle {
-            font-size: 24px;
-            font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
-        }
-        .editorHeaderButtons {
-            float: right;
-        }
-        .editorBody {
-            width: 100%;
-            height: calc(100% - 32px);
-        }
-
-        .header {
-            padding: 8px;
-            width: 100%;
-            height: 50px;
-            background-color: #2F3129;
-            color: #AAAAAA;
-        }
-
-        #side {
-            height: 100%;
-            background-color: #2F3129;
-            color: #AAAAAA;
-        }
-
-        .compilerOptions {
-            width: 128px;
-        }
-    </style>
-    <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-        ga('create', 'UA-93230088-1', 'auto');
-        ga('send', 'pageview');
-      </script>
 </body>
 
 </html>

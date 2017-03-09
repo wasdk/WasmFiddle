@@ -45,9 +45,10 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var React = __webpack_require__(1);
-	var ReactDOM = __webpack_require__(2);
-	var App_1 = __webpack_require__(3);
+	Object.defineProperty(exports, "__esModule", { value: true });
+	const React = __webpack_require__(1);
+	const ReactDOM = __webpack_require__(2);
+	const App_1 = __webpack_require__(3);
 	ReactDOM.render(React.createElement(App_1.AppComponent, null), document.getElementById("app"));
 
 
@@ -68,122 +69,124 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var React = __webpack_require__(1);
-	var ReactSplitPane = __webpack_require__(4);
-	var State_1 = __webpack_require__(55);
-	var Editor_1 = __webpack_require__(49);
-	var AppComponent = (function (_super) {
-	    __extends(AppComponent, _super);
-	    function AppComponent() {
-	        _super.call(this);
+	Object.defineProperty(exports, "__esModule", { value: true });
+	const React = __webpack_require__(1);
+	const ReactSplitPane = __webpack_require__(4);
+	const State_1 = __webpack_require__(49);
+	const Editor_1 = __webpack_require__(51);
+	class AppComponent extends React.Component {
+	    constructor() {
+	        super();
 	        this.installKeyboardShortcuts();
 	        this.state = {
-	            compilerOptions: "-O3"
+	            compilerOptions: "-O3" //["-O3", "-O0", "-Os"]
 	        };
 	        State_1.State.app = this;
 	    }
-	    AppComponent.prototype.installKeyboardShortcuts = function () {
-	        Mousetrap.bind(['command+shift+k'], function (e) {
+	    installKeyboardShortcuts() {
+	        Mousetrap.bind(['command+shift+j', 'command+shift+k', 'command+enter', 'control+enter'], (e) => {
 	            State_1.State.run();
 	            e.preventDefault();
 	        });
-	        Mousetrap.bind(['command+shift+s'], function (e) {
+	        Mousetrap.bind(['ctrl+enter', 'command+enter', 'control+enter'], (e) => {
+	            State_1.State.assemble();
+	            e.preventDefault();
+	        });
+	        Mousetrap.bind(['command+shift+s'], (e) => {
 	            State_1.State.saveForever();
 	            e.preventDefault();
 	        });
-	        Mousetrap.bind(['command+shift+.'], function (e) {
+	        Mousetrap.bind(['command+shift+.'], (e) => {
 	            State_1.State.nextPane(1);
 	            e.preventDefault();
 	        });
-	        Mousetrap.bind(['command+shift+,'], function (e) {
+	        Mousetrap.bind(['command+shift+,'], (e) => {
 	            State_1.State.nextPane(-1);
 	            e.preventDefault();
 	        });
-	    };
-	    AppComponent.prototype.componentDidMount = function () {
+	    }
+	    componentDidMount() {
 	        State_1.State.init();
-	    };
-	    AppComponent.prototype.onSaveJavaScript = function (text) {
+	    }
+	    onSaveJavaScript(text) {
 	        localStorage["js-source"] = text;
-	    };
-	    AppComponent.prototype.compilerOptionsChanged = function (e) {
+	    }
+	    compilerOptionsChanged(e) {
 	        this.setState({
 	            compilerOptions: e.target.value
 	        });
-	    };
-	    AppComponent.prototype.onResize = function () {
+	    }
+	    onResize() {
 	        State_1.State.resize();
-	    };
-	    AppComponent.prototype.render = function () {
-	        return React.createElement("div", null, 
-	            React.createElement(ReactSplitPane, {split: "horizontal", allowResize: false, onChange: this.onResize.bind(this)}, 
-	                React.createElement("div", {className: "header"}, 
-	                    React.createElement("span", {className: "headerTitle"}, 
-	                        "WasmFiddle ", 
-	                        State_1.State.fiddleURI), 
-	                    React.createElement("div", {className: "editorHeaderButtons"}, 
-	                        React.createElement("a", {onClick: State_1.State.saveForever, href: "#", className: "btn btn-sm btn-success"}, 
-	                            React.createElement("span", {className: "glyphicon glyphicon-share"}), 
-	                            " Share")
-	                    )), 
-	                React.createElement(ReactSplitPane, {split: "vertical", defaultSize: "50%", onChange: this.onResize.bind(this)}, 
-	                    React.createElement("div", null, 
-	                        React.createElement(ReactSplitPane, {split: "horizontal", defaultSize: "50%", onChange: this.onResize.bind(this)}, 
-	                            React.createElement("div", {className: "editorContainer"}, 
-	                                React.createElement("div", {className: "editorHeader"}, 
-	                                    React.createElement("span", {className: "editorHeaderTitle"}, "main.c"), 
-	                                    React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                        React.createElement("a", {onClick: State_1.State.run, href: "#", className: "btn btn-xs btn-success"}, 
-	                                            React.createElement("span", {className: "glyphicon glyphicon-play"}), 
-	                                            " Compile & Run"), 
-	                                        ' ')), 
-	                                React.createElement(Editor_1.EditorComponent, {name: "main.c", mode: "ace/mode/c_cpp"})), 
-	                            React.createElement("div", {className: "editorContainer"}, 
-	                                React.createElement("div", {className: "editorHeader"}, 
-	                                    React.createElement("span", {className: "editorHeaderTitle"}, "harness.js"), 
-	                                    React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                        React.createElement("a", {onClick: State_1.State.runHarness, href: "#", className: "btn btn-xs btn-success"}, 
-	                                            React.createElement("span", {className: "glyphicon glyphicon-play"}), 
-	                                            " Run"), 
-	                                        ' ')), 
-	                                React.createElement(Editor_1.EditorComponent, {name: "harness.js", mode: "ace/mode/javascript"})))
-	                    ), 
-	                    React.createElement("div", null, 
-	                        React.createElement(ReactSplitPane, {split: "horizontal", defaultSize: "50%", onChange: this.onResize.bind(this)}, 
-	                            React.createElement(ReactSplitPane, {split: "horizontal", defaultSize: "50%", onChange: this.onResize.bind(this)}, 
-	                                React.createElement("div", {className: "editorContainer"}, 
-	                                    React.createElement("div", {className: "editorHeader"}, 
-	                                        React.createElement("span", {className: "editorHeaderTitle"}, "out.wast"), 
-	                                        React.createElement("div", {className: "editorHeaderButtons"})), 
-	                                    React.createElement(Editor_1.EditorComponent, {name: "wast", save: false, readOnly: true})), 
-	                                React.createElement("div", {className: "editorContainer"}, 
-	                                    React.createElement("div", {className: "editorHeader"}, 
-	                                        React.createElement("span", {className: "editorHeaderTitle"}, "out.wasm"), 
-	                                        React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                            React.createElement("a", {onClick: State_1.State.run, href: "#", className: "btn btn-xs btn-success"}, 
-	                                                React.createElement("span", {className: "glyphicon glyphicon-save"}), 
-	                                                " Download"), 
-	                                            ' ')), 
-	                                    React.createElement(Editor_1.EditorComponent, {name: "wasm", save: false, readOnly: true}))), 
-	                            React.createElement("div", {className: "editorContainer"}, 
-	                                React.createElement("div", {className: "editorHeader"}, 
-	                                    React.createElement("span", {className: "editorHeaderTitle"}, "out"), 
-	                                    React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                        React.createElement("a", {onClick: State_1.State.clearOutput, href: "#", className: "btn btn-xs btn-success"}, 
-	                                            React.createElement("span", {className: "glyphicon glyphicon-ban-circle"}), 
-	                                            " Clear"), 
-	                                        ' ')), 
-	                                React.createElement(Editor_1.EditorComponent, {name: "output", save: false, readOnly: true})))
-	                    )))
-	        );
-	    };
-	    return AppComponent;
-	}(React.Component));
+	    }
+	    render() {
+	        return React.createElement("div", null,
+	            React.createElement(ReactSplitPane, { split: "horizontal", allowResize: false, onChange: this.onResize.bind(this) },
+	                React.createElement("div", { className: "header" },
+	                    React.createElement("a", { onClick: State_1.State.saveForever, href: "#", className: "btn btn-sm btn-success" },
+	                        React.createElement("span", { className: "glyphicon glyphicon-save" }),
+	                        " Save"),
+	                    ' ',
+	                    React.createElement("span", { className: "headerTitle" },
+	                        "WasmFiddle ",
+	                        State_1.State.fiddleURI),
+	                    React.createElement("div", { className: "editorHeaderButtons" },
+	                        React.createElement("a", { onClick: State_1.State.saveForever, href: "#", className: "btn btn-sm btn-success" },
+	                            React.createElement("span", { className: "glyphicon glyphicon-share" }),
+	                            " Share"))),
+	                React.createElement(ReactSplitPane, { split: "vertical", defaultSize: "50%", onChange: this.onResize.bind(this) },
+	                    React.createElement("div", null,
+	                        React.createElement(ReactSplitPane, { split: "horizontal", defaultSize: "50%", onChange: this.onResize.bind(this) },
+	                            React.createElement("div", { className: "editorContainer" },
+	                                React.createElement("div", { className: "editorHeader" },
+	                                    React.createElement("span", { className: "editorHeaderTitle" }, "main.c"),
+	                                    React.createElement("div", { className: "editorHeaderButtons" },
+	                                        React.createElement("a", { onClick: State_1.State.run, href: "#", className: "btn btn-xs btn-success" },
+	                                            React.createElement("span", { className: "glyphicon glyphicon-play" }),
+	                                            " Compile & Run"),
+	                                        ' ')),
+	                                React.createElement(Editor_1.EditorComponent, { name: "main.c", mode: "ace/mode/c_cpp" })),
+	                            React.createElement("div", { className: "editorContainer" },
+	                                React.createElement("div", { className: "editorHeader" },
+	                                    React.createElement("span", { className: "editorHeaderTitle" }, "harness.js"),
+	                                    React.createElement("div", { className: "editorHeaderButtons" },
+	                                        React.createElement("a", { onClick: State_1.State.runHarness, href: "#", className: "btn btn-xs btn-success" },
+	                                            React.createElement("span", { className: "glyphicon glyphicon-play" }),
+	                                            " Run"),
+	                                        ' ')),
+	                                React.createElement(Editor_1.EditorComponent, { name: "harness.js", mode: "ace/mode/javascript" })))),
+	                    React.createElement("div", null,
+	                        React.createElement(ReactSplitPane, { split: "horizontal", defaultSize: "60%", onChange: this.onResize.bind(this) },
+	                            React.createElement(ReactSplitPane, { split: "horizontal", defaultSize: "80%", onChange: this.onResize.bind(this) },
+	                                React.createElement("div", { className: "editorContainer" },
+	                                    React.createElement("div", { className: "editorHeader" },
+	                                        React.createElement("span", { className: "editorHeaderTitle" }, "out.wast"),
+	                                        React.createElement("div", { className: "editorHeaderButtons" },
+	                                            React.createElement("a", { onClick: State_1.State.assemble, href: "#", className: "btn btn-xs btn-success" },
+	                                                React.createElement("span", { className: "glyphicon glyphicon-play" }),
+	                                                " Assemble & Run"),
+	                                            ' ')),
+	                                    React.createElement(Editor_1.EditorComponent, { name: "wast" })),
+	                                React.createElement("div", { className: "editorContainer" },
+	                                    React.createElement("div", { className: "editorHeader" },
+	                                        React.createElement("span", { className: "editorHeaderTitle" }, "out.wasm"),
+	                                        React.createElement("div", { className: "editorHeaderButtons" },
+	                                            React.createElement("a", { onClick: State_1.State.run, href: "#", className: "btn btn-xs btn-success" },
+	                                                React.createElement("span", { className: "glyphicon glyphicon-save" }),
+	                                                " Download"),
+	                                            ' ')),
+	                                    React.createElement(Editor_1.EditorComponent, { name: "wasm", save: false, readOnly: true }))),
+	                            React.createElement("div", { className: "editorContainer" },
+	                                React.createElement("div", { className: "editorHeader" },
+	                                    React.createElement("span", { className: "editorHeaderTitle" }, "out"),
+	                                    React.createElement("div", { className: "editorHeaderButtons" },
+	                                        React.createElement("a", { onClick: State_1.State.clearOutput, href: "#", className: "btn btn-xs btn-success" },
+	                                            React.createElement("span", { className: "glyphicon glyphicon-ban-circle" }),
+	                                            " Clear"),
+	                                        ' ')),
+	                                React.createElement(Editor_1.EditorComponent, { name: "output", save: false, readOnly: true })))))));
+	    }
+	}
 	exports.AppComponent = AppComponent;
 
 
@@ -778,7 +781,7 @@
 	            }
 	
 	            // add prefixes to properties
-	            if (this._requiresPrefix[property]) {
+	            if (this._requiresPrefix.hasOwnProperty(property)) {
 	              style[this._browserInfo.jsPrefix + (0, _capitalizeString2.default)(property)] = value;
 	              if (!this._keepUnprefixed) {
 	                delete style[property];
@@ -873,7 +876,7 @@
 	  }
 	
 	  for (var browser in browserByCanIuseAlias) {
-	    if (browserInfo[browser]) {
+	    if (browserInfo.hasOwnProperty(browser)) {
 	      return browserByCanIuseAlias[browser];
 	    }
 	  }
@@ -888,7 +891,7 @@
 	  var browserInfo = _bowser2.default._detect(userAgent);
 	
 	  for (var browser in prefixByBrowser) {
-	    if (browserInfo[browser]) {
+	    if (browserInfo.hasOwnProperty(browser)) {
 	      var prefix = prefixByBrowser[browser];
 	
 	      browserInfo.jsPrefix = prefix;
@@ -1852,10 +1855,10 @@
 	        style.WebkitBoxDirection = 'normal';
 	      }
 	    }
-	    if (property === 'display' && alternativeValues[value]) {
+	    if (property === 'display' && alternativeValues.hasOwnProperty(value)) {
 	      return (0, _getPrefixedValue2.default)(cssPrefix + alternativeValues[value], value, keepUnprefixed);
 	    }
-	    if (alternativeProps[property]) {
+	    if (alternativeProps.hasOwnProperty(property)) {
 	      style[alternativeProps[property]] = alternativeValues[value] || value;
 	    }
 	  }
@@ -1886,7 +1889,7 @@
 	      cssPrefix = _ref.cssPrefix,
 	      keepUnprefixed = _ref.keepUnprefixed;
 	
-	  if (typeof value === 'string' && value.match(values) !== null && (browserName === 'firefox' && browserVersion < 16 || browserName === 'chrome' && browserVersion < 26 || (browserName === 'safari' || browserName === 'ios_saf') && browserVersion < 7 || (browserName === 'opera' || browserName === 'op_mini') && browserVersion < 12.1 || browserName === 'android' && browserVersion < 4.4 || browserName === 'and_uc')) {
+	  if (typeof value === 'string' && values.test(value) && (browserName === 'firefox' && browserVersion < 16 || browserName === 'chrome' && browserVersion < 26 || (browserName === 'safari' || browserName === 'ios_saf') && browserVersion < 7 || (browserName === 'opera' || browserName === 'op_mini') && browserVersion < 12.1 || browserName === 'android' && browserVersion < 4.4 || browserName === 'and_uc')) {
 	    return (0, _getPrefixedValue2.default)(cssPrefix + value, value, keepUnprefixed);
 	  }
 	}
@@ -1990,7 +1993,7 @@
 	
 	  // This might change in the future
 	  // Keep an eye on it
-	  if (properties[property] && values[value]) {
+	  if (properties.hasOwnProperty(property) && values.hasOwnProperty(value)) {
 	    return (0, _getPrefixedValue2.default)(cssPrefix + value, value, keepUnprefixed);
 	  }
 	}
@@ -2032,7 +2035,7 @@
 	      keepUnprefixed = _ref.keepUnprefixed,
 	      requiresPrefix = _ref.requiresPrefix;
 	
-	  if (typeof value === 'string' && properties[property]) {
+	  if (typeof value === 'string' && properties.hasOwnProperty(property)) {
 	    var _ret = function () {
 	      // memoize the prefix array for later use
 	      if (!requiresPrefixDashCased) {
@@ -2237,7 +2240,7 @@
 	          style[property] = _processedValue;
 	        }
 	
-	        (0, _prefixProperty2.default)(prefixMap, property, style);
+	        style = (0, _prefixProperty2.default)(prefixMap, property, style);
 	      }
 	    }
 	
@@ -2266,13 +2269,28 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function prefixProperty(prefixProperties, property, style) {
-	  var requiredPrefixes = prefixProperties[property];
-	
-	  if (requiredPrefixes) {
-	    for (var i = 0, len = requiredPrefixes.length; i < len; ++i) {
-	      style[requiredPrefixes[i] + (0, _capitalizeString2.default)(property)] = style[property];
-	    }
+	  if (!prefixProperties.hasOwnProperty(property)) {
+	    return style;
 	  }
+	
+	  // We need to preserve the order of the styles while inserting new prefixed
+	  // styles. Object order is not guaranteed, but this is better than nothing.
+	  // Note that this is brittle and is likely to break in older versions of
+	  // Node (e.g. Node 4).
+	  var newStyle = {};
+	  Object.keys(style).forEach(function (styleProperty) {
+	    if (styleProperty === property) {
+	      // We've found the style we need to prefix.
+	      var requiredPrefixes = prefixProperties[property];
+	      for (var i = 0, len = requiredPrefixes.length; i < len; ++i) {
+	        newStyle[requiredPrefixes[i] + (0, _capitalizeString2.default)(property)] = style[property];
+	      }
+	    }
+	
+	    newStyle[styleProperty] = style[styleProperty];
+	  });
+	
+	  return newStyle;
 	}
 	module.exports = exports['default'];
 
@@ -2311,7 +2329,7 @@
 	};
 	
 	function cursor(property, value) {
-	  if (property === 'cursor' && values[value]) {
+	  if (property === 'cursor' && values.hasOwnProperty(value)) {
 	    return prefixes.map(function (prefix) {
 	      return prefix + value;
 	    });
@@ -2409,7 +2427,7 @@
 	};
 	
 	function flex(property, value) {
-	  if (property === 'display' && values[value]) {
+	  if (property === 'display' && values.hasOwnProperty(value)) {
 	    return ['-webkit-box', '-moz-box', '-ms-' + value + 'box', '-webkit-' + value, value];
 	  }
 	}
@@ -2453,7 +2471,7 @@
 	      style.WebkitBoxDirection = 'normal';
 	    }
 	  }
-	  if (alternativeProps[property]) {
+	  if (alternativeProps.hasOwnProperty(property)) {
 	    style[alternativeProps[property]] = alternativeValues[value] || value;
 	  }
 	}
@@ -2481,7 +2499,7 @@
 	var values = /linear-gradient|radial-gradient|repeating-linear-gradient|repeating-radial-gradient/;
 	
 	function gradient(property, value) {
-	  if (typeof value === 'string' && !(0, _isPrefixedValue2.default)(value) && value.match(values) !== null) {
+	  if (typeof value === 'string' && !(0, _isPrefixedValue2.default)(value) && values.test(value)) {
 	    return prefixes.map(function (prefix) {
 	      return prefix + value;
 	    });
@@ -2564,7 +2582,7 @@
 	};
 	
 	function sizing(property, value) {
-	  if (properties[property] && values[value]) {
+	  if (properties.hasOwnProperty(property) && values.hasOwnProperty(value)) {
 	    return prefixes.map(function (prefix) {
 	      return prefix + value;
 	    });
@@ -2644,11 +2662,11 @@
 	
 	function transition(property, value, style, propertyPrefixMap) {
 	  // also check for already prefixed transitions
-	  if (typeof value === 'string' && properties[property]) {
+	  if (typeof value === 'string' && properties.hasOwnProperty(property)) {
 	    var outputValue = prefixValue(value, propertyPrefixMap);
 	    // if the property is already prefixed
 	    var webkitOutput = outputValue.split(/,(?![^()]*(?:\([^()]*\))?\))/g).filter(function (val) {
-	      return val.match(/-moz-|-ms-/) === null;
+	      return !/-moz-|-ms-/.test(val);
 	    }).join(',');
 	
 	    if (property.indexOf('Webkit') > -1) {
@@ -2656,7 +2674,7 @@
 	    }
 	
 	    var mozOutput = outputValue.split(/,(?![^()]*(?:\([^()]*\))?\))/g).filter(function (val) {
-	      return val.match(/-webkit-|-ms-/) === null;
+	      return !/-webkit-|-ms-/.test(val);
 	    }).join(',');
 	
 	    if (property.indexOf('Moz') > -1) {
@@ -4518,98 +4536,10 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var React = __webpack_require__(1);
-	var State_1 = __webpack_require__(55);
-	var EditorComponent = (function (_super) {
-	    __extends(EditorComponent, _super);
-	    function EditorComponent() {
-	        _super.apply(this, arguments);
-	    }
-	    EditorComponent.prototype.componentWillUnmount = function () {
-	        State_1.State.removeEditor(this);
-	    };
-	    EditorComponent.prototype.componentDidMount = function () {
-	        var editor = this.editor = ace.edit(this.container);
-	        var theme = true ? "ace/theme/monokai" : "ace/theme/github";
-	        // editor.setValue(this.props.source, -1);
-	        editor.setReadOnly(this.props.readOnly);
-	        editor.setTheme(theme);
-	        editor.setFontSize(11);
-	        editor.getSession().setUseSoftTabs(true);
-	        editor.getSession().setTabSize(2);
-	        editor.setShowPrintMargin(false);
-	        editor.setOptions({
-	            wrap: true,
-	            enableBasicAutocompletion: true,
-	            enableSnippets: true,
-	            enableLiveAutocompletion: true
-	        });
-	        editor.$blockScrolling = Infinity;
-	        editor.renderer.setScrollMargin(10, 10);
-	        editor.getSession().setMode(this.props.mode);
-	        var action = this.props.action;
-	        var self = this;
-	        editor.commands.addCommands([{
-	                bindKey: { win: "Ctrl-S", mac: "Command-S" }, exec: function () {
-	                    State_1.State.saveForever();
-	                }
-	            },
-	            {
-	                bindKey: { win: "Ctrl-Shift-K", mac: "Command-Shift-K" }, exec: function () {
-	                    State_1.State.run();
-	                }
-	            },
-	            {
-	                bindKey: { win: "Ctrl-Shift-.", mac: "Command-Shift-." }, exec: function () {
-	                    State_1.State.nextPane(1);
-	                }
-	            },
-	            {
-	                bindKey: { win: "Ctrl-Shift-,", mac: "Command-Shift-," }, exec: function () {
-	                    State_1.State.nextPane(-1);
-	                }
-	            }
-	        ]);
-	        State_1.State.addEditor(this);
-	    };
-	    EditorComponent.prototype.onChange = function () {
-	    };
-	    EditorComponent.prototype.render = function () {
-	        var _this = this;
-	        return React.createElement("div", {ref: function (self) { return _this.container = self; }, className: "editorBody"});
-	    };
-	    EditorComponent.defaultProps = {
-	        // source: "",
-	        mode: "",
-	        action: "",
-	        save: true,
-	        readOnly: false
-	    };
-	    return EditorComponent;
-	}(React.Component));
-	exports.EditorComponent = EditorComponent;
-
-
-/***/ },
-/* 50 */,
-/* 51 */,
-/* 52 */,
-/* 53 */,
-/* 54 */,
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var lib_1 = __webpack_require__(56);
-	var State = (function () {
-	    function State() {
-	    }
-	    State.sendRequest = function (command, cb) {
+	Object.defineProperty(exports, "__esModule", { value: true });
+	const lib_1 = __webpack_require__(50);
+	class State {
+	    static sendRequest(command, cb) {
 	        var self = this;
 	        var xhr = new XMLHttpRequest();
 	        xhr.addEventListener("load", function () {
@@ -4619,8 +4549,8 @@
 	        xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
 	        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	        xhr.send(command);
-	    };
-	    State.getAnnotations = function (response) {
+	    }
+	    static getAnnotations(response) {
 	        // Parse and annotate errors if compilation fails.
 	        var annotations = [];
 	        if (response.indexOf("(module") !== 0) {
@@ -4642,80 +4572,90 @@
 	            }
 	        }
 	        return annotations;
-	    };
-	    State.compileToWasm = function (src, options, cb) {
+	    }
+	    static wastToWasm(src) {
+	        let wast = State.findEditor("wast");
+	        if (src)
+	            wast.editor.setValue(src);
+	        else
+	            src = wast.editor.getValue();
 	        src = encodeURIComponent(src).replace('%20', '+');
-	        var action = "c2wast";
+	        let action = "wast2wasm";
+	        // todo: Locally via binaryan.JS
+	        State.sendRequest("input=" + src + "&action=" + action, function () {
+	            var buffer = atob(this.responseText.split('\n', 2)[1]);
+	            var data = new Uint8Array(buffer.length);
+	            for (var i = 0; i < buffer.length; i++) {
+	                data[i] = buffer.charCodeAt(i);
+	            }
+	            let wasm = State.findEditor("wasm");
+	            wasm.editor.setValue("buffer = new Uint8Array([" + String(data) + "]);");
+	            State.buffer = data;
+	            State.runHarness();
+	        });
+	    }
+	    static cToWasm(src, options, cb) {
+	        src = encodeURIComponent(src).replace('%20', '+');
+	        let action = "c2wast";
 	        options = encodeURIComponent(options + " --clean");
 	        State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
-	            var wast = State.findEditor("wast");
-	            var annotations = State.getAnnotations(this.responseText);
-	            if (annotations.length) {
+	            let annotations = State.getAnnotations(this.responseText);
+	            if (annotations.length)
 	                cb(this.responseText, annotations);
-	                return;
-	            }
-	            wast.editor.setValue(this.responseText, -1);
-	            src = encodeURIComponent(this.responseText).replace('%20', '+');
-	            var action = "wast2wasm";
-	            State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
-	                var buffer = atob(this.responseText.split('\n', 2)[1]);
-	                var data = new Uint8Array(buffer.length);
-	                for (var i = 0; i < buffer.length; i++) {
-	                    data[i] = buffer.charCodeAt(i);
-	                }
-	                var wasm = State.findEditor("wasm");
-	                wasm.editor.setValue("buffer = new Uint8Array([" + String(data) + "]);");
-	                cb(data, []);
-	            });
+	            State.wastToWasm(this.responseText);
 	        });
-	    };
-	    State.findEditor = function (name) {
-	        for (var i = 0; i < State.editors.length; i++) {
+	    }
+	    static findEditor(name) {
+	        for (let i = 0; i < State.editors.length; i++) {
 	            if (State.editors[i].props.name == name) {
 	                return State.editors[i];
 	            }
 	        }
 	        return null;
-	    };
-	    State.appendOutput = function (s) {
-	        var output = State.findEditor("output");
+	    }
+	    static appendOutput(s) {
+	        let output = State.findEditor("output");
 	        output.editor.insert(s + "\n");
 	        output.editor.gotoLine(Infinity);
-	    };
-	    State.run = function () {
-	        var main = State.findEditor("main.c");
-	        var options = State.app.state.compilerOptions;
-	        State.compileToWasm(main.editor.getValue(), options, function (result, annotations) {
-	            if (annotations.length) {
-	                main.editor.getSession().clearAnnotations();
-	                main.editor.getSession().setAnnotations(annotations);
-	                State.appendOutput(String(result));
-	                return;
-	            }
-	            State.buffer = result;
-	            State.runHarness();
-	        });
-	    };
-	    State.runHarness = function () {
+	    }
+	    static run() {
+	        let main = State.findEditor("main.c");
+	        let options = State.app.state.compilerOptions;
+	        State.cToWasm(main.editor.getValue(), options, State.annotate);
+	    }
+	    static annotate(result, annotations) {
+	        let main = State.findEditor("main.c");
+	        if (annotations.length) {
+	            main.editor.getSession().clearAnnotations();
+	            main.editor.getSession().setAnnotations(annotations);
+	            State.appendOutput(String(result));
+	            return;
+	        }
+	    }
+	    static assemble() {
+	        State.appendOutput("assemble wast2wasm");
+	        State.wastToWasm(null);
+	    }
+	    static runHarness() {
 	        if (!State.buffer) {
 	            State.appendOutput("Compile a WebAssembly module first.");
 	            return;
 	        }
-	        var harness = State.findEditor("harness.js");
-	        var func = new Function("buffer", "lib", "log", harness.editor.getValue());
+	        let harness = State.findEditor("harness.js");
+	        let func = new Function("buffer", "lib", "log", harness.editor.getValue());
 	        func(State.buffer, lib_1.lib, function (x) {
 	            State.appendOutput(String(x));
 	            console.log.apply(console, arguments);
 	        });
-	    };
-	    State.clearOutput = function () {
-	        var output = State.findEditor("output");
+	    }
+	    static clearOutput() {
+	        let output = State.findEditor("output");
 	        output.editor.setValue("");
-	    };
-	    State.init = function () {
-	        var uri = window.location.search.substring(1);
+	    }
+	    static init() {
+	        let uri = window.location.search.substring(1);
 	        if (uri) {
-	            var i = uri.indexOf("/");
+	            let i = uri.indexOf("/");
 	            if (i > 0) {
 	                uri = uri.substring(0, i);
 	            }
@@ -4725,36 +4665,38 @@
 	            State.setState({
 	                editors: {
 	                    "main.c": "int main() { \n  return 42;\n}",
-	                    "harness.js": "let m = new WebAssembly.Instance(new WebAssembly.Module(buffer));\n\nlog(m.exports.main());"
+	                    "harness.js": "let m = new WebAssembly.Instance(new WebAssembly.Module(buffer));\n\nlog(m.exports.main());",
+	                    "wast": ";; generated on compilation",
+	                    "out.wast": ";; generated on compile"
 	                }
 	            });
 	        }
-	    };
-	    State.resize = function () {
-	        State.editors.forEach(function (e) {
+	    }
+	    static resize() {
+	        State.editors.forEach(e => {
 	            e.editor.resize();
 	        });
-	    };
-	    State.setState = function (state) {
-	        for (var k in state.editors) {
+	    }
+	    static setState(state) {
+	        for (let k in state.editors) {
 	            State.findEditor(k).editor.setValue(state.editors[k], -1);
 	        }
-	    };
-	    State.getState = function () {
-	        var o = {
+	    }
+	    static getState() {
+	        let o = {
 	            editors: {}
 	        };
-	        State.editors.forEach(function (e) {
+	        State.editors.forEach(e => {
 	            if (e.props.save) {
 	                o.editors[e.props.name] = e.editor.getValue();
 	            }
 	        });
 	        return o;
-	    };
-	    State.saveForever = function () {
+	    }
+	    static saveForever() {
 	        var xhr = new XMLHttpRequest();
 	        xhr.addEventListener("load", function () {
-	            var uri = JSON.parse(this.response).uri;
+	            let uri = JSON.parse(this.response).uri;
 	            uri = uri.substring(uri.lastIndexOf("/") + 1);
 	            State.fiddleURI = uri;
 	            State.app.forceUpdate();
@@ -4763,47 +4705,47 @@
 	        xhr.open("POST", "//api.myjson.com/bins", true);
 	        xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
 	        xhr.send(JSON.stringify(State.getState()));
-	    };
-	    State.loadForever = function (fiddleURI) {
+	    }
+	    static loadForever(fiddleURI) {
 	        State.fiddleURI = fiddleURI;
 	        var xhr = new XMLHttpRequest();
 	        xhr.addEventListener("load", function () {
-	            var state = JSON.parse(this.response);
+	            let state = JSON.parse(this.response);
 	            State.setState(state);
 	            history.replaceState({}, fiddleURI, '?' + State.fiddleURI);
 	            State.app.forceUpdate();
 	        });
-	        var url = "https://api.myjson.com/bins/" + fiddleURI;
+	        let url = "https://api.myjson.com/bins/" + fiddleURI;
 	        xhr.open("GET", url, true);
 	        xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
 	        xhr.send();
-	    };
-	    State.nextPane = function (delta) {
+	    }
+	    static nextPane(delta) {
 	        State.currentEditor = (State.currentEditor + delta) % State.editors.length;
 	        State.editors[State.currentEditor].editor.focus();
-	    };
-	    State.addEditor = function (e) {
+	    }
+	    static addEditor(e) {
 	        State.editors.push(e);
-	    };
-	    State.removeEditor = function (e) {
-	    };
-	    /**
-	     * Currently compiled module.
-	     */
-	    State.buffer = null;
-	    State.fiddleURI = "";
-	    State.currentEditor = 0;
-	    State.editors = [];
-	    return State;
-	}());
+	    }
+	    static removeEditor(e) {
+	    }
+	}
+	/**
+	 * Currently compiled module.
+	 */
+	State.buffer = null;
+	State.fiddleURI = "";
+	State.currentEditor = 0;
+	State.editors = [];
 	exports.State = State;
 
 
 /***/ },
-/* 56 */
+/* 50 */
 /***/ function(module, exports) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
 	function UTF8ArrayToString(u8Array, idx) {
 	    var endPtr = idx;
 	    while (u8Array[endPtr])
@@ -4860,6 +4802,83 @@
 	exports.lib = {
 	    UTF8ArrayToString: UTF8ArrayToString
 	};
+
+
+/***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	const React = __webpack_require__(1);
+	const State_1 = __webpack_require__(49);
+	class EditorComponent extends React.Component {
+	    componentWillUnmount() {
+	        State_1.State.removeEditor(this);
+	    }
+	    componentDidMount() {
+	        let editor = this.editor = ace.edit(this.container);
+	        var theme = true ? "ace/theme/monokai" : "ace/theme/github";
+	        // editor.setValue(this.props.source, -1);
+	        editor.setReadOnly(this.props.readOnly);
+	        editor.setTheme(theme);
+	        editor.setFontSize(11);
+	        editor.getSession().setUseSoftTabs(true);
+	        editor.getSession().setTabSize(2);
+	        editor.setShowPrintMargin(false);
+	        editor.setOptions({
+	            wrap: true,
+	            enableBasicAutocompletion: true,
+	            enableSnippets: true,
+	            enableLiveAutocompletion: true
+	        });
+	        editor.$blockScrolling = Infinity;
+	        editor.renderer.setScrollMargin(10, 10);
+	        editor.getSession().setMode(this.props.mode);
+	        let action = this.props.action;
+	        let self = this;
+	        editor.commands.addCommands([{
+	                bindKey: { win: "Ctrl-S", mac: "Command-S" }, exec: function () {
+	                    State_1.State.saveForever();
+	                }
+	            },
+	            {
+	                bindKey: { win: "Ctrl-Shift-K", mac: "Command-Shift-K" }, exec: function () {
+	                    State_1.State.run();
+	                }
+	            },
+	            {
+	                bindKey: { win: "Ctrl-Enter", mac: "Command-Enter" }, exec: function () {
+	                    State_1.State.assemble();
+	                }
+	            },
+	            {
+	                bindKey: { win: "Ctrl-Shift-.", mac: "Command-Shift-." }, exec: function () {
+	                    State_1.State.nextPane(1);
+	                }
+	            },
+	            {
+	                bindKey: { win: "Ctrl-Shift-,", mac: "Command-Shift-," }, exec: function () {
+	                    State_1.State.nextPane(-1);
+	                }
+	            }
+	        ]);
+	        State_1.State.addEditor(this);
+	    }
+	    onChange() {
+	    }
+	    render() {
+	        return React.createElement("div", { ref: (self) => this.container = self, className: "editorBody" });
+	    }
+	}
+	EditorComponent.defaultProps = {
+	    // source: "",
+	    mode: "",
+	    action: "",
+	    save: true,
+	    readOnly: false
+	};
+	exports.EditorComponent = EditorComponent;
 
 
 /***/ }

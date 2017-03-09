@@ -4,14 +4,14 @@
         "sourceMap": true,
         "noImplicitAny": true,
         "module": "commonjs",
-        "target": "es5",
+        "target": "es6",
         "jsx": "react",
         "baseUrl": "src",
-        "moduleResolution": "node",
-        "noImplicitAny": true,
-        "sourceMap": true
+        "moduleResolution": "node"
     },
     "exclude": [
+        "lib",
+        "dist",
         "node_modules"
     ]
 }
