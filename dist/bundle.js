@@ -4615,7 +4615,7 @@
 	            cb.call(this);
 	        });
 	        // xhr.open("POST", "//areweflashyet.com/tmp/wasm/service.php", true);
-	        xhr.open("POST", "http://wasmexplorer-service.herokuapp.com/service.php", true);
+	        xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
 	        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	        xhr.send(command);
 	    };
@@ -4758,7 +4758,7 @@
 	            State.app.forceUpdate();
 	            history.replaceState({}, State.fiddleURI, '?' + State.fiddleURI);
 	        });
-	        xhr.open("POST", "https://api.myjson.com/bins", true);
+	        xhr.open("POST", "//api.myjson.com/bins", true);
 	        xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
 	        xhr.send(JSON.stringify(State.getState()));
 	    };
