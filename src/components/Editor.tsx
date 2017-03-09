@@ -59,18 +59,13 @@ export class EditorComponent extends React.Component<{
         }
       },
       {
-        bindKey: { win: "Ctrl-Shift-K", mac: "Command-Shift-K" }, exec: function () {
+        bindKey: { win: "Ctrl-Shift-Return", mac: "Ctrl-Shift-Return" }, exec: function () {
           State.run();
         }
       },
       {
-        bindKey: { win: "Ctrl-Shift-.", mac: "Command-Shift-." }, exec: function () {
-          State.nextPane(1);
-        }
-      },
-      {
-        bindKey: { win: "Ctrl-Shift-,", mac: "Command-Shift-," }, exec: function () {
-          State.nextPane(-1);
+        bindKey: { win: "Ctrl-Return", mac: "Ctrl-Return" }, exec: function () {
+          State.runHarness();
         }
       }
       ]

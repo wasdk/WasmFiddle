@@ -21,20 +21,16 @@ export class AppComponent extends React.Component<void, {
   canvas: HTMLCanvasElement;
 
   installKeyboardShortcuts() {
-    Mousetrap.bind(['command+shift+k'], (e: any) => {
+    Mousetrap.bind(['ctrl+shift+enter'], (e: any) => {
       State.run();
       e.preventDefault();
     });
-    Mousetrap.bind(['command+shift+s'], (e: any) => {
+    Mousetrap.bind(['ctrl+enter'], (e: any) => {
+      State.runHarness();
+      e.preventDefault();
+    });
+    Mousetrap.bind(['command+s'], (e: any) => {
       State.saveForever();
-      e.preventDefault();
-    });
-    Mousetrap.bind(['command+shift+.'], (e: any) => {
-      State.nextPane(1);
-      e.preventDefault();
-    });
-    Mousetrap.bind(['command+shift+,'], (e: any) => {
-      State.nextPane(-1);
       e.preventDefault();
     });
   }
@@ -70,7 +66,7 @@ export class AppComponent extends React.Component<void, {
               <div className="editorContainer">
                 <div className="editorHeader"><span className="editorHeaderTitle">main.c</span>
                   <div className="editorHeaderButtons">
-                    <a onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Compile & Run</a>{' '}
+                    <a title="CTRL + Shift + Return" onClick={State.run} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Compile & Run</a>
                   </div>
                 </div>
                 <EditorComponent name="main.c" mode="ace/mode/c_cpp" showGutter={true} showLineNumbers={true}/>
@@ -78,7 +74,7 @@ export class AppComponent extends React.Component<void, {
               <div className="editorContainer">
                 <div className="editorHeader"><span className="editorHeaderTitle">harness.js</span>
                   <div className="editorHeaderButtons">
-                    <a onClick={State.runHarness} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Run</a>{' '}
+                    <a title="CTRL + Return" onClick={State.runHarness} href="#" className="btn btn-xs btn-success"><span className="glyphicon glyphicon-play"></span> Run</a>
                   </div>
                 </div>
                 <EditorComponent name="harness.js" mode="ace/mode/javascript" showGutter={true} showLineNumbers={true}/>
