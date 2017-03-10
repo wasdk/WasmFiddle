@@ -68,7 +68,6 @@ html, body {
   color: white;
   width: 100%;
   height: 32px;
-  font-size: 11px;
   line-height: 32px;
   padding-left: 4px;
   padding-right: 4px;
@@ -80,6 +79,15 @@ html, body {
 }
 
 .editorHeaderTitle {
+  color: #32a9e6;
+  font-size: 14px;
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+}
+
+.editorHeaderButtons {
+  float: right;
+  padding-right: 8px;
+  font-size: 11px;
   font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
 
@@ -94,12 +102,6 @@ html, body {
 .headerTitle {
   font-size: 16px;
   line-height: 16px;
-  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
-}
-
-.editorHeaderButtons {
-  float: right;
-  padding-right: 8px;
   font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
 

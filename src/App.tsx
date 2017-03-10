@@ -10,7 +10,8 @@ declare var Mousetrap: any;
 declare var Promise: any;
 
 export class AppComponent extends React.Component<void, {
-  compilerOptions: string
+  compilerOptions: string,
+  isCompiling: boolean;
 }> {
 
   constructor() {
@@ -18,7 +19,8 @@ export class AppComponent extends React.Component<void, {
     this.installKeyboardShortcuts();
     State.app = this;
     this.state = {
-      compilerOptions: "-O3 -std=C++11"
+      compilerOptions: "-O3 -std=C++11",
+      isCompiling: false
     } as any;
   }
 
@@ -44,7 +46,7 @@ export class AppComponent extends React.Component<void, {
   }
 
   compilerOptionsChanged(options: string) {
-    this.setState({ compilerOptions: options });
+    this.setState({ compilerOptions: options } as any);
   }
 
   onResize() {
@@ -52,12 +54,28 @@ export class AppComponent extends React.Component<void, {
     this.mainEditor.editor.resize();
   }
 
-  download() {
-    // TODO: mbx
-    // this.downloadLink.href = "data:;base64,"; // + wasm.split('\n')[1];
-    // if (this.downloadLink.href as any != document.location) {
-    //   this.downloadLink.click();
-    // }
+  download(what: string) {
+    var url = "";
+    var name = "";
+    if (what == "wasm") {
+      url = URL.createObjectURL(new Blob([this.buffer], {type: 'application/wasm'}));
+      name = "program.wasm";
+    } else if (what == "wast") {
+      url = URL.createObjectURL(new Blob([this.wastEditor.editor.getValue()], {type: 'text/wast'}));
+      name = "program.wast";
+    } else {
+      return;
+    }
+    State.sendServiceEvent("download " + what);
+    this.downloadLink.href = url;
+    this.downloadLink.download = name;
+    if (this.downloadLink.href as any != document.location) {
+      this.downloadLink.click();
+    }
+  }
+
+  assemble() {
+
   }
 
   loadFiddledStateFromURI(fiddleURI: string) {
@@ -152,6 +170,7 @@ export class AppComponent extends React.Component<void, {
     });
   }
   runHarness() {
+    State.sendServiceEvent("runHarness");
     if (!this.buffer) {
       this.appendOutput("Compile a WebAssembly module first.");
       return;
@@ -160,38 +179,47 @@ export class AppComponent extends React.Component<void, {
     let self = this;
     let func = new Function("wasmCode", "buffer", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
     try {
-    func(this.buffer, this.buffer, lib, function (x: any) {
-      self.appendOutput(String(x));
-    }, State.app.canvas);
+      func(this.buffer, this.buffer, lib, function (x: any) {
+        self.appendOutput(String(x));
+      }, State.app.canvas);
     } catch (x) {
       self.appendOutput(x);
+      State.sendServiceEvent("runHarness Error");
     }
   }
 
   compileToWasm(src: string, options: string, cb: (buffer: Uint8Array, annotations?: any[]) => void) {
+    State.sendServiceEvent("compileToWasm");
     let self = this;
     src = encodeURIComponent(src).replace('%20', '+');
     let action = "c2wast";
     options = encodeURIComponent(options);
+    self.setState({isCompiling: true} as any);
     State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
+      self.setState({isCompiling: false} as any);
       if (!this.responseText) {
         this.appendOutput("Something went wrong while compiling " + action + ".");
+        State.sendServiceEvent("compileToWasm Error");
         return;
       }
       let annotations = State.getAnnotations(this.responseText);
       if (annotations.length) {
         cb(this.responseText, annotations);
+        State.sendServiceEvent("compileToWasm Error or Warnings");
         return;
       }
       self.wastEditor.editor.setValue(this.responseText, -1);
       src = encodeURIComponent(this.responseText).replace('%20', '+');
+      self.setState({isCompiling: true} as any);
       State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
+        self.setState({isCompiling: false} as any);
         var buffer = atob(this.responseText.split('\n', 2)[1]);
         var data = new Uint8Array(buffer.length);
         for (var i = 0; i < buffer.length; i++) {
           data[i] = buffer.charCodeAt(i);
         }
-        self.wasmEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(data) + "]);", -1);
+        // TODO: Shou
+        // self.wasmEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(data) + "]);", -1);
         cb(data, []);
       });
     });
@@ -203,6 +231,7 @@ export class AppComponent extends React.Component<void, {
   }
   share() {
     this.saveFiddleStateToURI();
+    State.sendServiceEvent("saveFiddleStateToURI");
   }
   clear() {
     this.outputEditor.editor.setValue("");
@@ -210,6 +239,7 @@ export class AppComponent extends React.Component<void, {
   downloadLink: HTMLAnchorElement = null;
   render(): any {
     return <div className="gAppContainer">
+      <a style={{display: "none"}} ref={(self: any) => this.downloadLink = self}/>
       <div className="gHeader">
         <div>
           <img src="img/web-assembly-icon-white-64px.png" className="waIcon" />
@@ -226,7 +256,7 @@ export class AppComponent extends React.Component<void, {
           <div>
             <div className="editorHeader"><span className="editorHeaderTitle">C/C++</span>
               <div className="editorHeaderButtons">
-                <a title="Compile & Run: CTRL + Shift + Return" onClick={this.run.bind(this)}>Compile & Run <i  className="fa fa-cog fa-lg" aria-hidden="true"></i></a>
+                <a title="Compile & Run: CTRL + Shift + Return" onClick={this.run.bind(this)}>Compile & Run <i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg"} aria-hidden="true"></i></a>
               </div>
             </div>
             <EditorComponent ref={(self: any) => this.mainEditor = self} name="main" mode="ace/mode/c_cpp" showGutter={true} showLineNumbers={true} />
@@ -243,24 +273,27 @@ export class AppComponent extends React.Component<void, {
         </div>
       </div>
       <div>
-        <div className="gV3">
+        <div className="gV2">
           <div>
-            <div className="editorHeader"><span className="editorHeaderTitle">out.wast</span>
+            <div className="editorHeader"><span className="editorHeaderTitle">WebAssembly Text</span>
               <div className="editorHeaderButtons">
+                {/*<a title="Assemble" onClick={this.assemble.bind(this)}>Assemble <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>*/}
+                Download <a title="Download WebAssembly Text" onClick={this.download.bind(this, "wast")}>Wast <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>{' '}
+                <a title="Download WebAssembly Binary" onClick={this.download.bind(this, "wasm")}>Wasm <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
-            <EditorComponent ref={(self: any) => this.wastEditor = self} name="wast" save={false} readOnly={true} fontSize={8}/>
+            <EditorComponent ref={(self: any) => this.wastEditor = self} name="wast" save={false} readOnly={true} fontSize={10}/>
           </div>
-          <div>
-            <div className="editorHeader"><span className="editorHeaderTitle">out.wasm</span>
+          {/*<div>
+            <div className="editorHeader"><span className="editorHeaderTitle">wasm</span>
               <div className="editorHeaderButtons">
                 <a title="Download" onClick={this.download.bind(this)}>Download <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
-            <EditorComponent ref={(self: any) => this.wasmEditor = self} name="wasm" save={false} readOnly={true} fontSize={8}/>
-          </div>
+            <EditorComponent ref={(self: any) => this.wasmEditor = self} name="wasm" save={false} readOnly={true} fontSize={10}/>
+          </div>*/}
           <div>
-            <div className="editorHeader"><span className="editorHeaderTitle">out</span>
+            <div className="editorHeader"><span className="editorHeaderTitle">Output</span>
               <div className="editorHeaderButtons">
                 <a title="Clear Output" onClick={this.clear.bind(this)}>Clear <i className="fa fa-close fa-lg" aria-hidden="true"></i></a>
               </div>

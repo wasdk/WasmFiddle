@@ -5,6 +5,12 @@ import { AppComponent } from "./App";
 import { lib } from "./lib"
 
 export class State {
+  static sendServiceEvent(label: string) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('serviceevent', false, false, { 'label': label });
+    window.dispatchEvent(evt);
+  }
+
   static sendRequest(command: string, cb: (any)) {
     var self = this;
     var xhr = new XMLHttpRequest();
