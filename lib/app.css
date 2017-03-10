@@ -1,130 +1,130 @@
-.Resizer {
-    border-color: #2F3129;
-    /*opacity: .2;*/
-    z-index: 1;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    -moz-background-clip: padding;
-    -webkit-background-clip: padding;
-    background-clip: padding-box;
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #2F3129;
 }
 
-.Resizer:hover {
-    -webkit-transition: all 2s ease;
-    transition: all 2s ease;
+.appWrapper {
+  height: 100%;
+  width: 100%;
 }
 
-.Resizer.horizontal {
-    height: 11px;
-    margin: -3px 0;
-    /*border-top: 5px solid rgba(255, 255, 255, 0);*/
-    /*border-bottom: 5px solid rgba(255, 255, 255, 0);*/
-    cursor: row-resize;
-    width: 100%;
+.gAppContainer {
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-rows: 40px 70% auto;
+  grid-template-columns: 100%;
 }
 
-.Resizer.horizontal:hover {
-    border-top: 5px solid rgba(0, 0, 0, 0.5);
-    border-bottom: 5px solid rgba(0, 0, 0, 0.5);
+.gHeader {
+  display: grid;
+  background-color: #424242;
+  color: white;
+  height: 100%;
+  width: 100%;
+  grid-template-rows: 100%;
+  grid-template-columns: 40px auto 44px;
 }
 
-.Resizer.vertical {
-    border-color: #2F3129;
-    width: 11px;
-    margin: 0 -5px;
-    /*border-left: 5px solid rgba(255, 255, 255, 0);*/
-    /*border-right: 5px solid rgba(255, 255, 255, 0);*/
-    cursor: col-resize;
+.gShareURI {
+  margin-left: 10px;
+  font-size: 16px;
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+  align-self: center;
 }
 
-.Resizer.vertical:hover {
-    border-left: 5px solid rgba(0, 0, 0, 0.5);
-    border-right: 5px solid rgba(0, 0, 0, 0.5);
+.gShareButton {
+  justify-self: center;
+  align-self: center;
 }
 
-
-Resizer.disabled {
-    cursor: not-allowed;
+.gV2 {
+  display: grid;
+  height: 100%;
+  width: 100%;
+  grid-template-rows: 100%;
+  grid-template-columns: 50% 50%;
 }
 
-
-Resizer.disabled:hover {
-    border-color: transparent;
-}
-
-body {
-    margin: 0px;
+.gV3 {
+  display: grid;
+  height: 100%;
+  width: 100%;
+  grid-template-rows: 100%;
+  grid-template-columns: 25% 25% auto;
 }
 
 .editorContainer {
-    background-color: #2F3129;
-    width: 100%;
-    height: 100%;
+  background-color: #2F3129;
+  width: 100%;
+  height: 100%;
 }
+
 .editorHeader {
-    /*padding: 4px;*/
-    background: #2F3129;
-    color: white;
-    width: 100%;
-    height: 32px;
-    font-size: 12px;
-    line-height: 32px;
-    padding-left: 4px;
-    padding-right: 4px;
+  background: #202020;
+  color: white;
+  width: 100%;
+  height: 32px;
+  font-size: 11px;
+  line-height: 32px;
+  padding-left: 4px;
+  padding-right: 4px;
 }
-.editorHeaderTitle {
-    font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
-}
-.headerTitle {
-    font-size: 24px;
-    line-height: 24px;
-    font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
-}
-.editorHeaderButtons {
-    float: right;
-}
+
 .editorBody {
-    width: 100%;
-    height: calc(100% - 32px);
+  width: 100%;
+  height: calc(100% - 32px);
+}
+
+.editorHeaderTitle {
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
 
 .header {
-    padding: 8px;
-    width: 100%;
-    height: 50px;
-    background-color: #2F3129;
-    color: #AAAAAA;
+  padding: 8px;
+  width: 100%;
+  height: 50px;
+  background-color: #2F3129;
+  color: #AAAAAA;
+}
+
+.headerTitle {
+  font-size: 16px;
+  line-height: 16px;
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+}
+
+.editorHeaderButtons {
+  float: right;
+  padding-right: 8px;
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
 
 #side {
-    height: 100%;
-    background-color: #2F3129;
-    color: #AAAAAA;
+  height: 100%;
+  background-color: #2F3129;
+  color: #AAAAAA;
 }
 
 .compilerOptions {
-    width: 128px;
+  width: 128px;
 }
 
 .waIcon {
+  padding: 4px;
   width: 32px;
   height: 32px;
 }
 
-.btn {
-  vertical-align: middle;
-  font-family: Arial;
-  color: #000000;
-  font-size: 11px;
-  padding: 5px 15px 5px 15px;
-  border: solid #ffffff 1px;
-  text-decoration: none;
-  background: #90de00;
-  text-decoration: none;
+.fa-cloud-upload:hover {
+    color: #87ec8d;
+    cursor: pointer;
 }
 
-.btn:hover {
-  background: #3cb0fd;
-  text-decoration: none;
+a:hover {
+  color: #87ec8d;
+  cursor: pointer;
 }

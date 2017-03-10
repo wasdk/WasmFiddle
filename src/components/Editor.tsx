@@ -14,6 +14,7 @@ export class EditorComponent extends React.Component<{
   action?: string;
   showGutter?: boolean;
   showLineNumbers?: boolean;
+  fontSize?: number;
 }, void> {
   container: HTMLDivElement;
   public editor: any;
@@ -24,18 +25,16 @@ export class EditorComponent extends React.Component<{
     save: true,
     readOnly: false,
     showGutter: false,
-    showLineNumbers: false
+    showLineNumbers: false,
+    fontSize: 11
   };
-  componentWillUnmount() {
-    State.removeEditor(this);
-  }
   componentDidMount() {
     let editor = this.editor = ace.edit(this.container);
     var theme = true ? "ace/theme/monokai" : "ace/theme/github";
     // editor.setValue(this.props.source, -1);
     editor.setReadOnly(this.props.readOnly);
     editor.setTheme(theme);
-    editor.setFontSize(11);
+    editor.setFontSize(this.props.fontSize);
     editor.getSession().setUseSoftTabs(true);
     editor.getSession().setTabSize(2);
     editor.setShowPrintMargin(false);
@@ -55,23 +54,21 @@ export class EditorComponent extends React.Component<{
     editor.commands.addCommands(
       [{
         bindKey: { win: "Ctrl-S", mac: "Command-S" }, exec: function () {
-          State.saveForever();
+          State.app.share();
         }
       },
       {
         bindKey: { win: "Ctrl-Shift-Return", mac: "Ctrl-Shift-Return" }, exec: function () {
-          State.run();
+          State.app.run();
         }
       },
       {
         bindKey: { win: "Ctrl-Return", mac: "Ctrl-Return" }, exec: function () {
-          State.runHarness();
+          State.app.runHarness();
         }
       }
       ]
     );
-
-    State.addEditor(this);
   }
   onChange() {
 
