@@ -66,7 +66,7 @@ export class AppComponent extends React.Component<void, {
     } else {
       return;
     }
-    State.sendServiceEvent("download " + what);
+    State.sendAppEvent("download", what);
     this.downloadLink.href = url;
     this.downloadLink.download = name;
     if (this.downloadLink.href as any != document.location) {
@@ -170,7 +170,7 @@ export class AppComponent extends React.Component<void, {
     });
   }
   runHarness() {
-    State.sendServiceEvent("runHarness");
+    State.sendAppEvent("run", "Harness");
     if (!this.buffer) {
       this.appendOutput("Compile a WebAssembly module first.");
       return;
@@ -184,12 +184,12 @@ export class AppComponent extends React.Component<void, {
       }, State.app.canvas);
     } catch (x) {
       self.appendOutput(x);
-      State.sendServiceEvent("runHarness Error");
+      State.sendAppEvent("error", "Run Harness");
     }
   }
 
   compileToWasm(src: string, options: string, cb: (buffer: Uint8Array, annotations?: any[]) => void) {
-    State.sendServiceEvent("compileToWasm");
+    State.sendAppEvent("compile", "To Wasm");
     let self = this;
     src = encodeURIComponent(src).replace('%20', '+');
     let action = "c2wast";
@@ -199,13 +199,13 @@ export class AppComponent extends React.Component<void, {
       self.setState({isCompiling: false} as any);
       if (!this.responseText) {
         this.appendOutput("Something went wrong while compiling " + action + ".");
-        State.sendServiceEvent("compileToWasm Error");
+        State.sendAppEvent("error", "Compile to Wasm");
         return;
       }
       let annotations = State.getAnnotations(this.responseText);
       if (annotations.length) {
         cb(this.responseText, annotations);
-        State.sendServiceEvent("compileToWasm Error or Warnings");
+        State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
         return;
       }
       self.wastEditor.editor.setValue(this.responseText, -1);
@@ -231,7 +231,7 @@ export class AppComponent extends React.Component<void, {
   }
   share() {
     this.saveFiddleStateToURI();
-    State.sendServiceEvent("saveFiddleStateToURI");
+    State.sendAppEvent("save", "Fiddle state to URI");
   }
   clear() {
     this.outputEditor.editor.setValue("");

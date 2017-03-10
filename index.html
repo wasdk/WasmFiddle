@@ -28,7 +28,7 @@
         ga('create', 'UA-93230088-2', 'auto');
         ga('send', 'pageview');
         window.addEventListener('serviceevent', function (e) {
-          ga('send', 'event', 'Service', 'send', e.detail.label);
+          ga('send', 'event', e.detail.category, e.detail.action, e.detail.label);
         });
       </script>
 </body>

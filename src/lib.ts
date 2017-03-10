@@ -47,6 +47,12 @@ function UTF8ArrayToString(u8Array: Uint8Array, idx: number) {
   }
 }
 
+function setStackPtr(memory: (Uint8Array|ArrayBuffer), ptr: number): void {
+  var buffer : ArrayBuffer = (<any>memory).buffer || memory;
+  new Int32Array(buffer)[1] = ptr;
+}
+
 export let lib = {
-  UTF8ArrayToString: UTF8ArrayToString
+  UTF8ArrayToString: UTF8ArrayToString,
+  setStackPtr: setStackPtr
 };

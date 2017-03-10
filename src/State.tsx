@@ -7,7 +7,15 @@ import { lib } from "./lib"
 export class State {
   static sendServiceEvent(label: string) {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('serviceevent', false, false, { 'label': label });
+    evt.initCustomEvent('serviceevent', false, false,
+      { 'category': 'Service', 'action': 'send', 'label': label });
+    window.dispatchEvent(evt);
+  }
+
+  static sendAppEvent(action: string, label?: string): void {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('serviceevent', false, false,
+      { 'category': 'App', 'action': action, 'label': label });
     window.dispatchEvent(evt);
   }
 
