@@ -12,7 +12,7 @@ export class CompilerOptionsComponent extends React.Component<{
   constructor () {
     super();
     this.state = {
-      dialect: "-std=C++11",
+      dialect: "-std=C99",
       optimizationLevel: "-O3"
     } as any;
   }
@@ -26,8 +26,8 @@ export class CompilerOptionsComponent extends React.Component<{
     }
   }
   componentWillReceiveProps(props: any) {
-    if (this.props.options) {
-      this.loadState(this.props.options);
+    if (props.options) {
+      this.loadState(props.options);
     }
   }
   optimizationLevelChanged(e: any) {
@@ -66,12 +66,12 @@ export class CompilerOptionsComponent extends React.Component<{
 
   render() {
     return <span>
-      {/*<select title="Optimization Level" value={this.state.optimizationLevel} onChange={this.optimizationLevelChanged.bind(this)}>
+      <select title="Optimization Level" value={this.state.optimizationLevel} onChange={this.optimizationLevelChanged.bind(this)}>
         { this.optimizationLevels.map(x => <option key={x}>{x}</option>) }
       </select>{' '}
       <select title="Dialect" value={this.state.dialect} onChange={this.dialectChanged.bind(this)}>
         { this.dialects.map(x => <option key={x}>{x}</option>) }
-      </select>*/}
+      </select>
     </span>
   }
 }

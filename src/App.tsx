@@ -12,6 +12,8 @@ declare var Promise: any;
 export class AppComponent extends React.Component<void, {
   compilerOptions: string,
   isCompiling: boolean;
+  isC: boolean;
+  view: string;
 }> {
 
   constructor() {
@@ -19,8 +21,10 @@ export class AppComponent extends React.Component<void, {
     this.installKeyboardShortcuts();
     State.app = this;
     this.state = {
-      compilerOptions: "-O3 -std=C++11",
-      isCompiling: false
+      compilerOptions: "-O3 -std=C99",
+      isCompiling: false,
+      isC: true,
+      view: "wast"
     } as any;
   }
 
@@ -46,7 +50,8 @@ export class AppComponent extends React.Component<void, {
   }
 
   compilerOptionsChanged(options: string) {
-    this.setState({ compilerOptions: options } as any);
+    let isC = options.indexOf("C++") < 0;
+    this.setState({ compilerOptions: options, isC } as any);
   }
 
   onResize() {
@@ -61,7 +66,7 @@ export class AppComponent extends React.Component<void, {
       url = URL.createObjectURL(new Blob([this.buffer], {type: 'application/wasm'}));
       name = "program.wasm";
     } else if (what == "wast") {
-      url = URL.createObjectURL(new Blob([this.wastEditor.editor.getValue()], {type: 'text/wast'}));
+      url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], {type: 'text/wast'}));
       name = "program.wast";
     } else {
       return;
@@ -133,7 +138,8 @@ export class AppComponent extends React.Component<void, {
       editors: {
         main: this.mainEditor.editor.getValue(),
         harness: this.harnessEditor.editor.getValue()
-      }
+      },
+      compilerOptions: this.state.compilerOptions
     }
   }
   loadFiddledState(fiddleState: any) {
@@ -146,15 +152,21 @@ export class AppComponent extends React.Component<void, {
     }
     this.mainEditor.editor.setValue(fiddleState.editors.main, -1);
     this.harnessEditor.editor.setValue(fiddleState.editors.harness, -1);
+
+    if (fiddleState.compilerOptions) {
+      let isC = fiddleState.compilerOptions.indexOf("C++") < 0;
+      this.setState({compilerOptions: fiddleState.compilerOptions, isC} as any);
+    }
   }
 
   mainEditor: EditorComponent = null;
-  wastEditor: EditorComponent = null;
+  viewEditor: EditorComponent = null;
   wasmEditor: EditorComponent = null;
   outputEditor: EditorComponent = null;
   harnessEditor: EditorComponent = null;
 
   buffer: Uint8Array = null;
+  wast: string = "";
   run() {
     let main = this.mainEditor;
     let options = this.state.compilerOptions;
@@ -167,6 +179,7 @@ export class AppComponent extends React.Component<void, {
       }
       this.buffer = result as Uint8Array;
       this.runHarness();
+      this.forceUpdate();
     });
   }
   runHarness() {
@@ -192,7 +205,7 @@ export class AppComponent extends React.Component<void, {
     State.sendAppEvent("compile", "To Wasm");
     let self = this;
     src = encodeURIComponent(src).replace('%20', '+');
-    let action = "c2wast";
+    let action = this.state.isC ? "c2wast" : "cpp2wast";
     options = encodeURIComponent(options);
     self.setState({isCompiling: true} as any);
     State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
@@ -208,7 +221,7 @@ export class AppComponent extends React.Component<void, {
         State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
         return;
       }
-      self.wastEditor.editor.setValue(this.responseText, -1);
+      self.wast = this.responseText;
       src = encodeURIComponent(this.responseText).replace('%20', '+');
       self.setState({isCompiling: true} as any);
       State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
@@ -218,8 +231,6 @@ export class AppComponent extends React.Component<void, {
         for (var i = 0; i < buffer.length; i++) {
           data[i] = buffer.charCodeAt(i);
         }
-        // TODO: Shou
-        // self.wasmEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(data) + "]);", -1);
         cb(data, []);
       });
     });
@@ -237,7 +248,18 @@ export class AppComponent extends React.Component<void, {
     this.outputEditor.editor.setValue("");
   }
   downloadLink: HTMLAnchorElement = null;
+  onViewChanged(e: any) {
+    this.setState({view: e.target.value} as any);
+  }
   render(): any {
+    if (this.viewEditor) {
+      if (this.state.view === "wast") {
+        this.viewEditor.editor.setValue(this.wast, -1);
+      } else if (this.state.view === "wasm") {
+        this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.buffer) + "]);", -1);
+      }
+    }
+
     return <div className="gAppContainer">
       <a style={{display: "none"}} ref={(self: any) => this.downloadLink = self}/>
       <div className="gHeader">
@@ -254,8 +276,9 @@ export class AppComponent extends React.Component<void, {
       <div>
         <div className="gV2">
           <div>
-            <div className="editorHeader"><span className="editorHeaderTitle">C/C++</span>
+            <div className="editorHeader"><span className="editorHeaderTitle">{this.state.isC ? "C" : "C++"}</span>
               <div className="editorHeaderButtons">
+                <CompilerOptionsComponent options={this.state.compilerOptions} onChange={this.compilerOptionsChanged.bind(this)}/>{' '}
                 <a title="Compile & Run: CTRL + Shift + Return" onClick={this.run.bind(this)}>Compile & Run <i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg"} aria-hidden="true"></i></a>
               </div>
             </div>
@@ -275,14 +298,18 @@ export class AppComponent extends React.Component<void, {
       <div>
         <div className="gV2">
           <div>
-            <div className="editorHeader"><span className="editorHeaderTitle">WebAssembly Text</span>
+            <div className="editorHeader">
+              <select title="Optimization Level" value={this.state.view} onChange={this.onViewChanged.bind(this)}>
+                <option value="wast">WebAssembly Text Format</option>
+                <option value="wasm">WebAssembly Code Buffer</option>
+              </select>
               <div className="editorHeaderButtons">
                 {/*<a title="Assemble" onClick={this.assemble.bind(this)}>Assemble <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>*/}
                 Download <a title="Download WebAssembly Text" onClick={this.download.bind(this, "wast")}>Wast <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>{' '}
                 <a title="Download WebAssembly Binary" onClick={this.download.bind(this, "wasm")}>Wasm <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
-            <EditorComponent ref={(self: any) => this.wastEditor = self} name="wast" save={false} readOnly={true} fontSize={10}/>
+            <EditorComponent ref={(self: any) => this.viewEditor = self} name="view" save={false} readOnly={true} fontSize={10}/>
           </div>
           {/*<div>
             <div className="editorHeader"><span className="editorHeaderTitle">wasm</span>
