@@ -63,7 +63,7 @@ export class AppComponent extends React.Component<void, {
     var url = "";
     var name = "";
     if (what == "wasm") {
-      url = URL.createObjectURL(new Blob([this.buffer], {type: 'application/wasm'}));
+      url = URL.createObjectURL(new Blob([this.wasmCode], {type: 'application/wasm'}));
       name = "program.wasm";
     } else if (what == "wast") {
       url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], {type: 'text/wast'}));
@@ -165,7 +165,8 @@ export class AppComponent extends React.Component<void, {
   outputEditor: EditorComponent = null;
   harnessEditor: EditorComponent = null;
 
-  buffer: Uint8Array = null;
+  wasmCode: Uint8Array = null;
+
   wast: string = "";
   run() {
     let main = this.mainEditor;
@@ -177,14 +178,14 @@ export class AppComponent extends React.Component<void, {
         this.appendOutput(String(result));
         return;
       }
-      this.buffer = result as Uint8Array;
+      this.wasmCode = result as Uint8Array;
       this.runHarness();
       this.forceUpdate();
     });
   }
   runHarness() {
     State.sendAppEvent("run", "Harness");
-    if (!this.buffer) {
+    if (!this.wasmCode) {
       this.appendOutput("Compile a WebAssembly module first.");
       return;
     }
@@ -192,9 +193,10 @@ export class AppComponent extends React.Component<void, {
     let self = this;
     let func = new Function("wasmCode", "buffer", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
     try {
-      func(this.buffer, this.buffer, lib, function (x: any) {
+      lib.log = function (x: any) {
         self.appendOutput(String(x));
-      }, State.app.canvas);
+      };
+      func(this.wasmCode, this.wasmCode, lib, lib.log, State.app.canvas);
     } catch (x) {
       self.appendOutput(x);
       State.sendAppEvent("error", "Run Harness");
@@ -256,7 +258,7 @@ export class AppComponent extends React.Component<void, {
       if (this.state.view === "wast") {
         this.viewEditor.editor.setValue(this.wast, -1);
       } else if (this.state.view === "wasm") {
-        this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.buffer) + "]);", -1);
+        this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.wasmCode) + "]);", -1);
       }
     }
 

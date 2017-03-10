@@ -52,7 +52,41 @@ function setStackPtr(memory: (Uint8Array|ArrayBuffer), ptr: number): void {
   new Int32Array(buffer)[1] = ptr;
 }
 
+function dumpMemory(memory: (Uint8Array|ArrayBuffer), ptr: number, len: number): void {
+  let m = new Uint8Array((<any>memory).buffer || memory);
+  function padAddress(s: string) {
+    while (s.length < 8) s = "0" + s;
+    return s;
+  }
+  function padByte(s: string) {
+    while (s.length < 2) s = "0" + s;
+    return s;
+  }
+  function ascii(i: number) {
+    if (i < 32) {
+      return ".";
+    }
+    return String.fromCharCode(i);
+  }
+  let str = "";
+  for (let i = ptr; i < len; i += 16) {
+    str += padAddress(i.toString(16).toUpperCase());
+    str += " ";
+    for (let j = i; j < i + 16; j++) {
+      str += padByte(m[j].toString(16).toUpperCase());
+    }
+    str += " ";
+    for (let j = i; j < i + 16; j++) {
+      str += ascii(m[j]);
+    }
+    str += "\n";
+  }
+  lib.log(str);
+}
+
 export let lib = {
+  log: null as any,
   UTF8ArrayToString: UTF8ArrayToString,
-  setStackPtr: setStackPtr
+  setStackPtr: setStackPtr,
+  dumpMemory: dumpMemory
 };

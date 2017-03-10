@@ -15,7 +15,7 @@ html, body {
   height: 100%;
   width: 100%;
   display: grid;
-  grid-template-rows: 40px 70% auto;
+  grid-template-rows: 40px 60% auto;
   grid-template-columns: 100%;
 }
 
