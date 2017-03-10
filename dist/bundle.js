@@ -100,7 +100,8 @@
 	            compilerOptions: "-O3 -std=C99",
 	            isCompiling: false,
 	            isC: true,
-	            view: "wast"
+	            view: "wast",
+	            showCanvas: false
 	        };
 	    }
 	    AppComponent.prototype.installKeyboardShortcuts = function () {
@@ -252,6 +253,10 @@
 	            lib_1.lib.log = function (x) {
 	                self.appendOutput(String(x));
 	            };
+	            lib_1.lib.showCanvas = function (x) {
+	                if (x === void 0) { x = true; }
+	                self.setState({ showCanvas: x });
+	            };
 	            func(this.wasmCode, this.wasmCode, lib_1.lib, lib_1.lib.log, State_1.State.app.canvas);
 	        }
 	        catch (x) {
@@ -301,6 +306,9 @@
 	        this.saveFiddleStateToURI();
 	        State_1.State.sendAppEvent("save", "Fiddle state to URI");
 	    };
+	    AppComponent.prototype.toggleCanvas = function () {
+	        this.setState({ showCanvas: !this.state.showCanvas });
+	    };
 	    AppComponent.prototype.clear = function () {
 	        this.outputEditor.editor.setValue("");
 	    };
@@ -321,8 +329,17 @@
 	            React.createElement("a", {style: { display: "none" }, ref: function (self) { return _this.downloadLink = self; }}), 
 	            React.createElement("div", {className: "gHeader"}, 
 	                React.createElement("div", null, 
-	                    React.createElement("img", {src: "img/web-assembly-icon-white-64px.png", className: "waIcon"})
-	                ), 
+	                    React.createElement("div", {className: "canvasOverlay", style: { display: this.state.showCanvas ? "" : "none" }}, 
+	                        React.createElement("div", {className: "editorHeader"}, 
+	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                React.createElement("a", {title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this)}, 
+	                                    this.state.showCanvas ? "Hide" : "Show", 
+	                                    " Canvas ", 
+	                                    React.createElement("i", {className: "fa fa-picture-o fa-lg", "aria-hidden": "true"}))
+	                            )
+	                        ), 
+	                        React.createElement("canvas", {className: "outputCanvas", ref: function (self) { return _this.canvas = self; }, width: 1024, height: 1024})), 
+	                    React.createElement("img", {src: "img/web-assembly-icon-white-64px.png", className: "waIcon"})), 
 	                React.createElement("div", {className: "gShareURI"}, window.location.origin + window.location.pathname + '?' + State_1.State.fiddleURI), 
 	                React.createElement("div", {className: "gShareButton"}, 
 	                    React.createElement("i", {title: "Share", onClick: this.share.bind(this), className: "fa fa-cloud-upload fa-2x", "aria-hidden": "true"})
@@ -355,8 +372,7 @@
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("select", {title: "Optimization Level", value: this.state.view, onChange: this.onViewChanged.bind(this)}, 
 	                                React.createElement("option", {value: "wast"}, "Text Format"), 
-	                                React.createElement("option", {value: "wasm"}, "Code Buffer"), 
-	                                React.createElement("option", {value: "canvas"}, "Canvas")), 
+	                                React.createElement("option", {value: "wasm"}, "Code Buffer")), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
 	                                "Download ", 
 	                                React.createElement("a", {title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
@@ -366,16 +382,19 @@
 	                                React.createElement("a", {title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
 	                                    "Wasm ", 
 	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement("canvas", {style: { display: this.state.view != "canvas" ? "none" : "" }, className: "outputCanvas", ref: function (self) { return _this.canvas = self; }, width: 384, height: 256}), 
-	                        React.createElement(Editor_1.EditorComponent, {style: { display: this.state.view == "canvas" ? "none" : "" }, ref: function (self) { return _this.viewEditor = self; }, name: "view", save: false, readOnly: true, fontSize: 10})), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.viewEditor = self; }, name: "view", save: false, readOnly: true, fontSize: 10})), 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("span", {className: "editorHeaderTitle"}, "Output"), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                React.createElement("a", {title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this)}, 
+	                                    this.state.showCanvas ? "Hide" : "Show", 
+	                                    " Canvas ", 
+	                                    React.createElement("i", {className: "fa fa-picture-o fa-lg", "aria-hidden": "true"})), 
+	                                ' ', 
 	                                React.createElement("a", {title: "Clear Output", onClick: this.clear.bind(this)}, 
-	                                    "Clear ", 
-	                                    React.createElement("i", {className: "fa fa-close fa-lg", "aria-hidden": "true"}))
-	                            )), 
+	                                    "Clear Output ", 
+	                                    React.createElement("i", {className: "fa fa-close fa-lg", "aria-hidden": "true"})))), 
 	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.outputEditor = self; }, name: "output", save: false, readOnly: true})))
 	            ));
 	    };
