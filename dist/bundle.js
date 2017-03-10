@@ -80,23 +80,27 @@
 	var React = __webpack_require__(1);
 	var State_1 = __webpack_require__(49);
 	var Editor_1 = __webpack_require__(51);
+	var CompilerOptions_1 = __webpack_require__(52);
 	var lib_1 = __webpack_require__(50);
 	var AppComponent = (function (_super) {
 	    __extends(AppComponent, _super);
 	    function AppComponent() {
 	        _super.call(this);
 	        this.mainEditor = null;
-	        this.wastEditor = null;
+	        this.viewEditor = null;
 	        this.wasmEditor = null;
 	        this.outputEditor = null;
 	        this.harnessEditor = null;
 	        this.buffer = null;
+	        this.wast = "";
 	        this.downloadLink = null;
 	        this.installKeyboardShortcuts();
 	        State_1.State.app = this;
 	        this.state = {
-	            compilerOptions: "-O3 -std=C++11",
-	            isCompiling: false
+	            compilerOptions: "-O3 -std=C99",
+	            isCompiling: false,
+	            isC: true,
+	            view: "wast"
 	        };
 	    }
 	    AppComponent.prototype.installKeyboardShortcuts = function () {
@@ -118,7 +122,8 @@
 	        this.init();
 	    };
 	    AppComponent.prototype.compilerOptionsChanged = function (options) {
-	        this.setState({ compilerOptions: options });
+	        var isC = options.indexOf("C++") < 0;
+	        this.setState({ compilerOptions: options, isC: isC });
 	    };
 	    AppComponent.prototype.onResize = function () {
 	        // State.resize();
@@ -132,7 +137,7 @@
 	            name = "program.wasm";
 	        }
 	        else if (what == "wast") {
-	            url = URL.createObjectURL(new Blob([this.wastEditor.editor.getValue()], { type: 'text/wast' }));
+	            url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], { type: 'text/wast' }));
 	            name = "program.wast";
 	        }
 	        else {
@@ -199,7 +204,8 @@
 	            editors: {
 	                main: this.mainEditor.editor.getValue(),
 	                harness: this.harnessEditor.editor.getValue()
-	            }
+	            },
+	            compilerOptions: this.state.compilerOptions
 	        };
 	    };
 	    AppComponent.prototype.loadFiddledState = function (fiddleState) {
@@ -212,6 +218,10 @@
 	        }
 	        this.mainEditor.editor.setValue(fiddleState.editors.main, -1);
 	        this.harnessEditor.editor.setValue(fiddleState.editors.harness, -1);
+	        if (fiddleState.compilerOptions) {
+	            var isC = fiddleState.compilerOptions.indexOf("C++") < 0;
+	            this.setState({ compilerOptions: fiddleState.compilerOptions, isC: isC });
+	        }
 	    };
 	    AppComponent.prototype.run = function () {
 	        var _this = this;
@@ -226,6 +236,7 @@
 	            }
 	            _this.buffer = result;
 	            _this.runHarness();
+	            _this.forceUpdate();
 	        });
 	    };
 	    AppComponent.prototype.runHarness = function () {
@@ -251,7 +262,7 @@
 	        State_1.State.sendServiceEvent("compileToWasm");
 	        var self = this;
 	        src = encodeURIComponent(src).replace('%20', '+');
-	        var action = "c2wast";
+	        var action = this.state.isC ? "c2wast" : "cpp2wast";
 	        options = encodeURIComponent(options);
 	        self.setState({ isCompiling: true });
 	        State_1.State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
@@ -267,7 +278,7 @@
 	                State_1.State.sendServiceEvent("compileToWasm Error or Warnings");
 	                return;
 	            }
-	            self.wastEditor.editor.setValue(this.responseText, -1);
+	            self.wast = this.responseText;
 	            src = encodeURIComponent(this.responseText).replace('%20', '+');
 	            self.setState({ isCompiling: true });
 	            State_1.State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
@@ -277,8 +288,6 @@
 	                for (var i = 0; i < buffer.length; i++) {
 	                    data[i] = buffer.charCodeAt(i);
 	                }
-	                // TODO: Shou
-	                // self.wasmEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(data) + "]);", -1);
 	                cb(data, []);
 	            });
 	        });
@@ -294,8 +303,19 @@
 	    AppComponent.prototype.clear = function () {
 	        this.outputEditor.editor.setValue("");
 	    };
+	    AppComponent.prototype.onViewChanged = function (e) {
+	        this.setState({ view: e.target.value });
+	    };
 	    AppComponent.prototype.render = function () {
 	        var _this = this;
+	        if (this.viewEditor) {
+	            if (this.state.view === "wast") {
+	                this.viewEditor.editor.setValue(this.wast, -1);
+	            }
+	            else if (this.state.view === "wasm") {
+	                this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.buffer) + "]);", -1);
+	            }
+	        }
 	        return React.createElement("div", {className: "gAppContainer"}, 
 	            React.createElement("a", {style: { display: "none" }, ref: function (self) { return _this.downloadLink = self; }}), 
 	            React.createElement("div", {className: "gHeader"}, 
@@ -310,12 +330,13 @@
 	                React.createElement("div", {className: "gV2"}, 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "C/C++"), 
+	                            React.createElement("span", {className: "editorHeaderTitle"}, this.state.isC ? "C" : "C++"), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                React.createElement(CompilerOptions_1.CompilerOptionsComponent, {options: this.state.compilerOptions, onChange: this.compilerOptionsChanged.bind(this)}), 
+	                                ' ', 
 	                                React.createElement("a", {title: "Compile & Run: CTRL + Shift + Return", onClick: this.run.bind(this)}, 
 	                                    "Compile & Run ", 
-	                                    React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true"}))
-	                            )), 
+	                                    React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true"})))), 
 	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.mainEditor = self; }, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true})), 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
@@ -331,7 +352,9 @@
 	                React.createElement("div", {className: "gV2"}, 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "WebAssembly Text"), 
+	                            React.createElement("select", {title: "Optimization Level", value: this.state.view, onChange: this.onViewChanged.bind(this)}, 
+	                                React.createElement("option", {value: "wast"}, "WebAssembly Text Format"), 
+	                                React.createElement("option", {value: "wasm"}, "WebAssembly Code Buffer")), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
 	                                "Download ", 
 	                                React.createElement("a", {title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
@@ -341,7 +364,7 @@
 	                                React.createElement("a", {title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
 	                                    "Wasm ", 
 	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.wastEditor = self; }, name: "wast", save: false, readOnly: true, fontSize: 10})), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.viewEditor = self; }, name: "view", save: false, readOnly: true, fontSize: 10})), 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("span", {className: "editorHeaderTitle"}, "Output"), 
@@ -552,6 +575,82 @@
 	    return EditorComponent;
 	}(React.Component));
 	exports.EditorComponent = EditorComponent;
+
+
+/***/ },
+
+/***/ 52:
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var React = __webpack_require__(1);
+	var CompilerOptionsComponent = (function (_super) {
+	    __extends(CompilerOptionsComponent, _super);
+	    function CompilerOptionsComponent() {
+	        _super.call(this);
+	        this.dialects = ["-std=C89", "-std=C99", "-std=C++98", "-std=C++11", "-std=C++14", "-std=C++1z"];
+	        this.optimizationLevels = ["-O0", "-O1", "-O2", "-O3", "-O4", "-Os"];
+	        this.state = {
+	            dialect: "-std=C99",
+	            optimizationLevel: "-O3"
+	        };
+	    }
+	    CompilerOptionsComponent.prototype.componentDidMount = function () {
+	        if (this.props.options) {
+	            this.loadState(this.props.options);
+	        }
+	    };
+	    CompilerOptionsComponent.prototype.componentWillReceiveProps = function (props) {
+	        if (props.options) {
+	            this.loadState(props.options);
+	        }
+	    };
+	    CompilerOptionsComponent.prototype.optimizationLevelChanged = function (e) {
+	        var _this = this;
+	        this.setState({ optimizationLevel: e.target.value }, function () {
+	            _this.onChange();
+	        });
+	    };
+	    CompilerOptionsComponent.prototype.dialectChanged = function (e) {
+	        var _this = this;
+	        this.setState({ dialect: e.target.value }, function () {
+	            _this.onChange();
+	        });
+	    };
+	    CompilerOptionsComponent.prototype.loadState = function (options) {
+	        var s = {};
+	        options.split(" ").forEach(function (o) {
+	            if (o.indexOf("-O") == 0) {
+	                s.optimizationLevel = o;
+	            }
+	            else if (o.indexOf("-std=") == 0) {
+	                s.dialect = o;
+	            }
+	        });
+	        this.setState(s);
+	    };
+	    CompilerOptionsComponent.prototype.saveState = function () {
+	        return [this.state.optimizationLevel, this.state.dialect].join(" ");
+	    };
+	    CompilerOptionsComponent.prototype.onChange = function () {
+	        if (this.props.onChange) {
+	            this.props.onChange(this.saveState());
+	        }
+	    };
+	    CompilerOptionsComponent.prototype.render = function () {
+	        return React.createElement("span", null, 
+	            React.createElement("select", {title: "Optimization Level", value: this.state.optimizationLevel, onChange: this.optimizationLevelChanged.bind(this)}, this.optimizationLevels.map(function (x) { return React.createElement("option", {key: x}, x); })), 
+	            ' ', 
+	            React.createElement("select", {title: "Dialect", value: this.state.dialect, onChange: this.dialectChanged.bind(this)}, this.dialects.map(function (x) { return React.createElement("option", {key: x}, x); })));
+	    };
+	    return CompilerOptionsComponent;
+	}(React.Component));
+	exports.CompilerOptionsComponent = CompilerOptionsComponent;
 
 
 /***/ }
