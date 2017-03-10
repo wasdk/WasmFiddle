@@ -91,7 +91,7 @@
 	        this.wasmEditor = null;
 	        this.outputEditor = null;
 	        this.harnessEditor = null;
-	        this.buffer = null;
+	        this.wasmCode = null;
 	        this.wast = "";
 	        this.downloadLink = null;
 	        this.installKeyboardShortcuts();
@@ -133,7 +133,7 @@
 	        var url = "";
 	        var name = "";
 	        if (what == "wasm") {
-	            url = URL.createObjectURL(new Blob([this.buffer], { type: 'application/wasm' }));
+	            url = URL.createObjectURL(new Blob([this.wasmCode], { type: 'application/wasm' }));
 	            name = "program.wasm";
 	        }
 	        else if (what == "wast") {
@@ -234,14 +234,14 @@
 	                _this.appendOutput(String(result));
 	                return;
 	            }
-	            _this.buffer = result;
+	            _this.wasmCode = result;
 	            _this.runHarness();
 	            _this.forceUpdate();
 	        });
 	    };
 	    AppComponent.prototype.runHarness = function () {
 	        State_1.State.sendAppEvent("run", "Harness");
-	        if (!this.buffer) {
+	        if (!this.wasmCode) {
 	            this.appendOutput("Compile a WebAssembly module first.");
 	            return;
 	        }
@@ -249,9 +249,10 @@
 	        var self = this;
 	        var func = new Function("wasmCode", "buffer", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
 	        try {
-	            func(this.buffer, this.buffer, lib_1.lib, function (x) {
+	            lib_1.lib.log = function (x) {
 	                self.appendOutput(String(x));
-	            }, State_1.State.app.canvas);
+	            };
+	            func(this.wasmCode, this.wasmCode, lib_1.lib, lib_1.lib.log, State_1.State.app.canvas);
 	        }
 	        catch (x) {
 	            self.appendOutput(x);
@@ -313,7 +314,7 @@
 	                this.viewEditor.editor.setValue(this.wast, -1);
 	            }
 	            else if (this.state.view === "wasm") {
-	                this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.buffer) + "]);", -1);
+	                this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.wasmCode) + "]);", -1);
 	            }
 	        }
 	        return React.createElement("div", {className: "gAppContainer"}, 
@@ -502,9 +503,44 @@
 	    var buffer = memory.buffer || memory;
 	    new Int32Array(buffer)[1] = ptr;
 	}
+	function dumpMemory(memory, ptr, len) {
+	    var m = new Uint8Array(memory.buffer || memory);
+	    function padAddress(s) {
+	        while (s.length < 8)
+	            s = "0" + s;
+	        return s;
+	    }
+	    function padByte(s) {
+	        while (s.length < 2)
+	            s = "0" + s;
+	        return s;
+	    }
+	    function ascii(i) {
+	        if (i < 32) {
+	            return ".";
+	        }
+	        return String.fromCharCode(i);
+	    }
+	    var str = "";
+	    for (var i = ptr; i < len; i += 16) {
+	        str += padAddress(i.toString(16).toUpperCase());
+	        str += " ";
+	        for (var j = i; j < i + 16; j++) {
+	            str += padByte(m[j].toString(16).toUpperCase());
+	        }
+	        str += " ";
+	        for (var j = i; j < i + 16; j++) {
+	            str += ascii(m[j]);
+	        }
+	        str += "\n";
+	    }
+	    exports.lib.log(str);
+	}
 	exports.lib = {
+	    log: null,
 	    UTF8ArrayToString: UTF8ArrayToString,
-	    setStackPtr: setStackPtr
+	    setStackPtr: setStackPtr,
+	    dumpMemory: dumpMemory
 	};
 
 
