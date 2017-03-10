@@ -95,7 +95,8 @@
 	        this.installKeyboardShortcuts();
 	        State_1.State.app = this;
 	        this.state = {
-	            compilerOptions: "-O3 -std=C++11"
+	            compilerOptions: "-O3 -std=C++11",
+	            isCompiling: false
 	        };
 	    }
 	    AppComponent.prototype.installKeyboardShortcuts = function () {
@@ -123,12 +124,28 @@
 	        // State.resize();
 	        this.mainEditor.editor.resize();
 	    };
-	    AppComponent.prototype.download = function () {
-	        // TODO: mbx
-	        // this.downloadLink.href = "data:;base64,"; // + wasm.split('\n')[1];
-	        // if (this.downloadLink.href as any != document.location) {
-	        //   this.downloadLink.click();
-	        // }
+	    AppComponent.prototype.download = function (what) {
+	        var url = "";
+	        var name = "";
+	        if (what == "wasm") {
+	            url = URL.createObjectURL(new Blob([this.buffer], { type: 'application/wasm' }));
+	            name = "program.wasm";
+	        }
+	        else if (what == "wast") {
+	            url = URL.createObjectURL(new Blob([this.wastEditor.editor.getValue()], { type: 'text/wast' }));
+	            name = "program.wast";
+	        }
+	        else {
+	            return;
+	        }
+	        State_1.State.sendServiceEvent("download " + what);
+	        this.downloadLink.href = url;
+	        this.downloadLink.download = name;
+	        if (this.downloadLink.href != document.location) {
+	            this.downloadLink.click();
+	        }
+	    };
+	    AppComponent.prototype.assemble = function () {
 	    };
 	    AppComponent.prototype.loadFiddledStateFromURI = function (fiddleURI) {
 	        State_1.State.fiddleURI = fiddleURI;
@@ -212,6 +229,7 @@
 	        });
 	    };
 	    AppComponent.prototype.runHarness = function () {
+	        State_1.State.sendServiceEvent("runHarness");
 	        if (!this.buffer) {
 	            this.appendOutput("Compile a WebAssembly module first.");
 	            return;
@@ -226,32 +244,41 @@
 	        }
 	        catch (x) {
 	            self.appendOutput(x);
+	            State_1.State.sendServiceEvent("runHarness Error");
 	        }
 	    };
 	    AppComponent.prototype.compileToWasm = function (src, options, cb) {
+	        State_1.State.sendServiceEvent("compileToWasm");
 	        var self = this;
 	        src = encodeURIComponent(src).replace('%20', '+');
 	        var action = "c2wast";
 	        options = encodeURIComponent(options);
+	        self.setState({ isCompiling: true });
 	        State_1.State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
+	            self.setState({ isCompiling: false });
 	            if (!this.responseText) {
 	                this.appendOutput("Something went wrong while compiling " + action + ".");
+	                State_1.State.sendServiceEvent("compileToWasm Error");
 	                return;
 	            }
 	            var annotations = State_1.State.getAnnotations(this.responseText);
 	            if (annotations.length) {
 	                cb(this.responseText, annotations);
+	                State_1.State.sendServiceEvent("compileToWasm Error or Warnings");
 	                return;
 	            }
 	            self.wastEditor.editor.setValue(this.responseText, -1);
 	            src = encodeURIComponent(this.responseText).replace('%20', '+');
+	            self.setState({ isCompiling: true });
 	            State_1.State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
+	                self.setState({ isCompiling: false });
 	                var buffer = atob(this.responseText.split('\n', 2)[1]);
 	                var data = new Uint8Array(buffer.length);
 	                for (var i = 0; i < buffer.length; i++) {
 	                    data[i] = buffer.charCodeAt(i);
 	                }
-	                self.wasmEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(data) + "]);", -1);
+	                // TODO: Shou
+	                // self.wasmEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(data) + "]);", -1);
 	                cb(data, []);
 	            });
 	        });
@@ -262,6 +289,7 @@
 	    };
 	    AppComponent.prototype.share = function () {
 	        this.saveFiddleStateToURI();
+	        State_1.State.sendServiceEvent("saveFiddleStateToURI");
 	    };
 	    AppComponent.prototype.clear = function () {
 	        this.outputEditor.editor.setValue("");
@@ -269,6 +297,7 @@
 	    AppComponent.prototype.render = function () {
 	        var _this = this;
 	        return React.createElement("div", {className: "gAppContainer"}, 
+	            React.createElement("a", {style: { display: "none" }, ref: function (self) { return _this.downloadLink = self; }}), 
 	            React.createElement("div", {className: "gHeader"}, 
 	                React.createElement("div", null, 
 	                    React.createElement("img", {src: "img/web-assembly-icon-white-64px.png", className: "waIcon"})
@@ -285,7 +314,7 @@
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
 	                                React.createElement("a", {title: "Compile & Run: CTRL + Shift + Return", onClick: this.run.bind(this)}, 
 	                                    "Compile & Run ", 
-	                                    React.createElement("i", {className: "fa fa-cog fa-lg", "aria-hidden": "true"}))
+	                                    React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true"}))
 	                            )), 
 	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.mainEditor = self; }, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true})), 
 	                    React.createElement("div", null, 
@@ -299,24 +328,23 @@
 	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.harnessEditor = self; }, name: "harness", mode: "ace/mode/javascript", showGutter: true, showLineNumbers: true})))
 	            ), 
 	            React.createElement("div", null, 
-	                React.createElement("div", {className: "gV3"}, 
+	                React.createElement("div", {className: "gV2"}, 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "out.wast"), 
-	                            React.createElement("div", {className: "editorHeaderButtons"})), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.wastEditor = self; }, name: "wast", save: false, readOnly: true, fontSize: 8})), 
-	                    React.createElement("div", null, 
-	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "out.wasm"), 
+	                            React.createElement("span", {className: "editorHeaderTitle"}, "WebAssembly Text"), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                React.createElement("a", {title: "Download", onClick: this.download.bind(this)}, 
-	                                    "Download ", 
-	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"}))
-	                            )), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.wasmEditor = self; }, name: "wasm", save: false, readOnly: true, fontSize: 8})), 
+	                                "Download ", 
+	                                React.createElement("a", {title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
+	                                    "Wast ", 
+	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})), 
+	                                ' ', 
+	                                React.createElement("a", {title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
+	                                    "Wasm ", 
+	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})))), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.wastEditor = self; }, name: "wast", save: false, readOnly: true, fontSize: 10})), 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "out"), 
+	                            React.createElement("span", {className: "editorHeaderTitle"}, "Output"), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
 	                                React.createElement("a", {title: "Clear Output", onClick: this.clear.bind(this)}, 
 	                                    "Clear ", 
@@ -339,6 +367,11 @@
 	var State = (function () {
 	    function State() {
 	    }
+	    State.sendServiceEvent = function (label) {
+	        var evt = document.createEvent('CustomEvent');
+	        evt.initCustomEvent('serviceevent', false, false, { 'label': label });
+	        window.dispatchEvent(evt);
+	    };
 	    State.sendRequest = function (command, cb) {
 	        var self = this;
 	        var xhr = new XMLHttpRequest();
