@@ -215,7 +215,7 @@ export class AppComponent extends React.Component<void, {
           <img src="img/web-assembly-icon-white-64px.png" className="waIcon" />
         </div>
         <div className="gShareURI">
-          {window.location.origin + '?' + State.fiddleURI}
+          {window.location.origin + window.location.pathname + '?' + State.fiddleURI}
         </div>
         <div className="gShareButton">
           <i title="Share" onClick={this.share.bind(this)} className="fa fa-cloud-upload fa-2x" aria-hidden="true"></i>
