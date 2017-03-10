@@ -273,7 +273,7 @@
 	                React.createElement("div", null, 
 	                    React.createElement("img", {src: "img/web-assembly-icon-white-64px.png", className: "waIcon"})
 	                ), 
-	                React.createElement("div", {className: "gShareURI"}, window.location.origin + '?' + State_1.State.fiddleURI), 
+	                React.createElement("div", {className: "gShareURI"}, window.location.origin + window.location.pathname + '?' + State_1.State.fiddleURI), 
 	                React.createElement("div", {className: "gShareButton"}, 
 	                    React.createElement("i", {title: "Share", onClick: this.share.bind(this), className: "fa fa-cloud-upload fa-2x", "aria-hidden": "true"})
 	                )), 
