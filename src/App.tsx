@@ -63,10 +63,10 @@ export class AppComponent extends React.Component<void, {
     var url = "";
     var name = "";
     if (what == "wasm") {
-      url = URL.createObjectURL(new Blob([this.wasmCode], {type: 'application/wasm'}));
+      url = URL.createObjectURL(new Blob([this.wasmCode], { type: 'application/wasm' }));
       name = "program.wasm";
     } else if (what == "wast") {
-      url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], {type: 'text/wast'}));
+      url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], { type: 'text/wast' }));
       name = "program.wast";
     } else {
       return;
@@ -155,7 +155,7 @@ export class AppComponent extends React.Component<void, {
 
     if (fiddleState.compilerOptions) {
       let isC = fiddleState.compilerOptions.indexOf("C++") < 0;
-      this.setState({compilerOptions: fiddleState.compilerOptions, isC} as any);
+      this.setState({ compilerOptions: fiddleState.compilerOptions, isC } as any);
     }
   }
 
@@ -209,9 +209,9 @@ export class AppComponent extends React.Component<void, {
     src = encodeURIComponent(src).replace('%20', '+');
     let action = this.state.isC ? "c2wast" : "cpp2wast";
     options = encodeURIComponent(options);
-    self.setState({isCompiling: true} as any);
+    self.setState({ isCompiling: true } as any);
     State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
-      self.setState({isCompiling: false} as any);
+      self.setState({ isCompiling: false } as any);
       if (!this.responseText) {
         this.appendOutput("Something went wrong while compiling " + action + ".");
         State.sendAppEvent("error", "Compile to Wasm");
@@ -225,9 +225,9 @@ export class AppComponent extends React.Component<void, {
       }
       self.wast = this.responseText;
       src = encodeURIComponent(this.responseText).replace('%20', '+');
-      self.setState({isCompiling: true} as any);
+      self.setState({ isCompiling: true } as any);
       State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
-        self.setState({isCompiling: false} as any);
+        self.setState({ isCompiling: false } as any);
         var buffer = atob(this.responseText.split('\n', 2)[1]);
         var data = new Uint8Array(buffer.length);
         for (var i = 0; i < buffer.length; i++) {
@@ -251,7 +251,7 @@ export class AppComponent extends React.Component<void, {
   }
   downloadLink: HTMLAnchorElement = null;
   onViewChanged(e: any) {
-    this.setState({view: e.target.value} as any);
+    this.setState({ view: e.target.value } as any);
   }
   render(): any {
     if (this.viewEditor) {
@@ -261,9 +261,8 @@ export class AppComponent extends React.Component<void, {
         this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.wasmCode) + "]);", -1);
       }
     }
-
     return <div className="gAppContainer">
-      <a style={{display: "none"}} ref={(self: any) => this.downloadLink = self}/>
+      <a style={{ display: "none" }} ref={(self: any) => this.downloadLink = self} />
       <div className="gHeader">
         <div>
           <img src="img/web-assembly-icon-white-64px.png" className="waIcon" />
@@ -280,7 +279,7 @@ export class AppComponent extends React.Component<void, {
           <div>
             <div className="editorHeader"><span className="editorHeaderTitle">{this.state.isC ? "C" : "C++"}</span>
               <div className="editorHeaderButtons">
-                <CompilerOptionsComponent options={this.state.compilerOptions} onChange={this.compilerOptionsChanged.bind(this)}/>{' '}
+                <CompilerOptionsComponent options={this.state.compilerOptions} onChange={this.compilerOptionsChanged.bind(this)} />{' '}
                 <a title="Compile & Run: CTRL + Shift + Return" onClick={this.run.bind(this)}>Compile & Run <i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg"} aria-hidden="true"></i></a>
               </div>
             </div>
@@ -302,8 +301,9 @@ export class AppComponent extends React.Component<void, {
           <div>
             <div className="editorHeader">
               <select title="Optimization Level" value={this.state.view} onChange={this.onViewChanged.bind(this)}>
-                <option value="wast">WebAssembly Text Format</option>
-                <option value="wasm">WebAssembly Code Buffer</option>
+                <option value="wast">Text Format</option>
+                <option value="wasm">Code Buffer</option>
+                <option value="canvas">Canvas</option>
               </select>
               <div className="editorHeaderButtons">
                 {/*<a title="Assemble" onClick={this.assemble.bind(this)}>Assemble <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>*/}
@@ -311,7 +311,8 @@ export class AppComponent extends React.Component<void, {
                 <a title="Download WebAssembly Binary" onClick={this.download.bind(this, "wasm")}>Wasm <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
-            <EditorComponent ref={(self: any) => this.viewEditor = self} name="view" save={false} readOnly={true} fontSize={10}/>
+            <canvas style={{display: this.state.view != "canvas" ? "none" : ""}} className="outputCanvas" ref={(self: any) => this.canvas = self} width={384} height={256} />
+            <EditorComponent style={{display: this.state.view == "canvas" ? "none" : ""}} ref={(self: any) => this.viewEditor = self} name="view" save={false} readOnly={true} fontSize={10} />
           </div>
           {/*<div>
             <div className="editorHeader"><span className="editorHeaderTitle">wasm</span>

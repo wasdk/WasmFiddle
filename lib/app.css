@@ -15,7 +15,7 @@ html, body {
   height: 100%;
   width: 100%;
   display: grid;
-  grid-template-rows: 40px 60% auto;
+  grid-template-rows: 40px auto 288px;
   grid-template-columns: 100%;
 }
 
@@ -129,4 +129,8 @@ html, body {
 a:hover {
   color: #87ec8d;
   cursor: pointer;
+}
+
+.outputCanvas {
+  background-color: white;
 }

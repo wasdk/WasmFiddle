@@ -15,6 +15,7 @@ export class EditorComponent extends React.Component<{
   showGutter?: boolean;
   showLineNumbers?: boolean;
   fontSize?: number;
+  style?: any;
 }, void> {
   container: HTMLDivElement;
   public editor: any;
@@ -26,7 +27,8 @@ export class EditorComponent extends React.Component<{
     readOnly: false,
     showGutter: false,
     showLineNumbers: false,
-    fontSize: 11
+    fontSize: 11,
+    style: null as any
   };
   componentDidMount() {
     let editor = this.editor = ace.edit(this.container);
@@ -74,6 +76,6 @@ export class EditorComponent extends React.Component<{
 
   }
   render(): any {
-    return <div ref={(self: any) => this.container = self} className="editorBody"/>
+    return <div style={this.props.style} ref={(self: any) => this.container = self} className="editorBody"/>
   }
 }
