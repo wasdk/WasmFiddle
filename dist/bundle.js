@@ -354,8 +354,9 @@
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("select", {title: "Optimization Level", value: this.state.view, onChange: this.onViewChanged.bind(this)}, 
-	                                React.createElement("option", {value: "wast"}, "WebAssembly Text Format"), 
-	                                React.createElement("option", {value: "wasm"}, "WebAssembly Code Buffer")), 
+	                                React.createElement("option", {value: "wast"}, "Text Format"), 
+	                                React.createElement("option", {value: "wasm"}, "Code Buffer"), 
+	                                React.createElement("option", {value: "canvas"}, "Canvas")), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
 	                                "Download ", 
 	                                React.createElement("a", {title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
@@ -365,7 +366,8 @@
 	                                React.createElement("a", {title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
 	                                    "Wasm ", 
 	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.viewEditor = self; }, name: "view", save: false, readOnly: true, fontSize: 10})), 
+	                        React.createElement("canvas", {style: { display: this.state.view != "canvas" ? "none" : "" }, className: "outputCanvas", ref: function (self) { return _this.canvas = self; }, width: 384, height: 256}), 
+	                        React.createElement(Editor_1.EditorComponent, {style: { display: this.state.view == "canvas" ? "none" : "" }, ref: function (self) { return _this.viewEditor = self; }, name: "view", save: false, readOnly: true, fontSize: 10})), 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("span", {className: "editorHeaderTitle"}, "Output"), 
@@ -606,7 +608,7 @@
 	    };
 	    EditorComponent.prototype.render = function () {
 	        var _this = this;
-	        return React.createElement("div", {ref: function (self) { return _this.container = self; }, className: "editorBody"});
+	        return React.createElement("div", {style: this.props.style, ref: function (self) { return _this.container = self; }, className: "editorBody"});
 	    };
 	    EditorComponent.defaultProps = {
 	        // source: "",
@@ -616,7 +618,8 @@
 	        readOnly: false,
 	        showGutter: false,
 	        showLineNumbers: false,
-	        fontSize: 11
+	        fontSize: 11,
+	        style: null
 	    };
 	    return EditorComponent;
 	}(React.Component));
