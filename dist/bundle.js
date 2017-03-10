@@ -143,7 +143,7 @@
 	        else {
 	            return;
 	        }
-	        State_1.State.sendServiceEvent("download " + what);
+	        State_1.State.sendAppEvent("download", what);
 	        this.downloadLink.href = url;
 	        this.downloadLink.download = name;
 	        if (this.downloadLink.href != document.location) {
@@ -240,7 +240,7 @@
 	        });
 	    };
 	    AppComponent.prototype.runHarness = function () {
-	        State_1.State.sendServiceEvent("runHarness");
+	        State_1.State.sendAppEvent("run", "Harness");
 	        if (!this.buffer) {
 	            this.appendOutput("Compile a WebAssembly module first.");
 	            return;
@@ -255,11 +255,11 @@
 	        }
 	        catch (x) {
 	            self.appendOutput(x);
-	            State_1.State.sendServiceEvent("runHarness Error");
+	            State_1.State.sendAppEvent("error", "Run Harness");
 	        }
 	    };
 	    AppComponent.prototype.compileToWasm = function (src, options, cb) {
-	        State_1.State.sendServiceEvent("compileToWasm");
+	        State_1.State.sendAppEvent("compile", "To Wasm");
 	        var self = this;
 	        src = encodeURIComponent(src).replace('%20', '+');
 	        var action = this.state.isC ? "c2wast" : "cpp2wast";
@@ -269,13 +269,13 @@
 	            self.setState({ isCompiling: false });
 	            if (!this.responseText) {
 	                this.appendOutput("Something went wrong while compiling " + action + ".");
-	                State_1.State.sendServiceEvent("compileToWasm Error");
+	                State_1.State.sendAppEvent("error", "Compile to Wasm");
 	                return;
 	            }
 	            var annotations = State_1.State.getAnnotations(this.responseText);
 	            if (annotations.length) {
 	                cb(this.responseText, annotations);
-	                State_1.State.sendServiceEvent("compileToWasm Error or Warnings");
+	                State_1.State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
 	                return;
 	            }
 	            self.wast = this.responseText;
@@ -298,7 +298,7 @@
 	    };
 	    AppComponent.prototype.share = function () {
 	        this.saveFiddleStateToURI();
-	        State_1.State.sendServiceEvent("saveFiddleStateToURI");
+	        State_1.State.sendAppEvent("save", "Fiddle state to URI");
 	    };
 	    AppComponent.prototype.clear = function () {
 	        this.outputEditor.editor.setValue("");
@@ -392,7 +392,12 @@
 	    }
 	    State.sendServiceEvent = function (label) {
 	        var evt = document.createEvent('CustomEvent');
-	        evt.initCustomEvent('serviceevent', false, false, { 'label': label });
+	        evt.initCustomEvent('serviceevent', false, false, { 'category': 'Service', 'action': 'send', 'label': label });
+	        window.dispatchEvent(evt);
+	    };
+	    State.sendAppEvent = function (action, label) {
+	        var evt = document.createEvent('CustomEvent');
+	        evt.initCustomEvent('serviceevent', false, false, { 'category': 'App', 'action': action, 'label': label });
 	        window.dispatchEvent(evt);
 	    };
 	    State.sendRequest = function (command, cb) {
@@ -493,8 +498,13 @@
 	        }
 	    }
 	}
+	function setStackPtr(memory, ptr) {
+	    var buffer = memory.buffer || memory;
+	    new Int32Array(buffer)[1] = ptr;
+	}
 	exports.lib = {
-	    UTF8ArrayToString: UTF8ArrayToString
+	    UTF8ArrayToString: UTF8ArrayToString,
+	    setStackPtr: setStackPtr
 	};
 
 
