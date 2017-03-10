@@ -133,4 +133,30 @@ a:hover {
 
 .outputCanvas {
   background-color: white;
+  width: 512px;
+  height: 512px;
+}
+
+
+.canvasOverlay {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-right: auto;
+  margin-left: auto;
+  width: 512px;
+  height: 544px;
+  position: fixed;
+  z-index: 20;
+  opacity: 1;
+  background-color: rgba(20, 20, 20, 0.9);
+  padding-left: 10px;
+  vertical-align: middle;
+  color: white;
+  padding: 10px;
+  font-size: 11px;
+  border-radius: 1em;
 }

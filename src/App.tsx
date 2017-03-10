@@ -14,6 +14,7 @@ export class AppComponent extends React.Component<void, {
   isCompiling: boolean;
   isC: boolean;
   view: string;
+  showCanvas: boolean;
 }> {
 
   constructor() {
@@ -24,7 +25,8 @@ export class AppComponent extends React.Component<void, {
       compilerOptions: "-O3 -std=C99",
       isCompiling: false,
       isC: true,
-      view: "wast"
+      view: "wast",
+      showCanvas: false
     } as any;
   }
 
@@ -196,6 +198,9 @@ export class AppComponent extends React.Component<void, {
       lib.log = function (x: any) {
         self.appendOutput(String(x));
       };
+      lib.showCanvas = function (x: boolean = true) {
+        self.setState({showCanvas: x} as any);
+      };
       func(this.wasmCode, this.wasmCode, lib, lib.log, State.app.canvas);
     } catch (x) {
       self.appendOutput(x);
@@ -246,6 +251,9 @@ export class AppComponent extends React.Component<void, {
     this.saveFiddleStateToURI();
     State.sendAppEvent("save", "Fiddle state to URI");
   }
+  toggleCanvas() {
+    this.setState({showCanvas: !this.state.showCanvas} as any);
+  }
   clear() {
     this.outputEditor.editor.setValue("");
   }
@@ -265,6 +273,14 @@ export class AppComponent extends React.Component<void, {
       <a style={{ display: "none" }} ref={(self: any) => this.downloadLink = self} />
       <div className="gHeader">
         <div>
+          <div className="canvasOverlay" style={{display: this.state.showCanvas ? "" : "none"}}>
+            <div className="editorHeader">
+              <div className="editorHeaderButtons">
+                <a title="Toggle Canvas" onClick={this.toggleCanvas.bind(this)}>{this.state.showCanvas ? "Hide" : "Show"} Canvas <i className="fa fa-picture-o fa-lg" aria-hidden="true"></i></a>
+              </div>
+            </div>
+            <canvas className="outputCanvas" ref={(self: any) => this.canvas = self} width={1024} height={1024} />
+          </div>
           <img src="img/web-assembly-icon-white-64px.png" className="waIcon" />
         </div>
         <div className="gShareURI">
@@ -303,7 +319,6 @@ export class AppComponent extends React.Component<void, {
               <select title="Optimization Level" value={this.state.view} onChange={this.onViewChanged.bind(this)}>
                 <option value="wast">Text Format</option>
                 <option value="wasm">Code Buffer</option>
-                <option value="canvas">Canvas</option>
               </select>
               <div className="editorHeaderButtons">
                 {/*<a title="Assemble" onClick={this.assemble.bind(this)}>Assemble <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>*/}
@@ -311,21 +326,13 @@ export class AppComponent extends React.Component<void, {
                 <a title="Download WebAssembly Binary" onClick={this.download.bind(this, "wasm")}>Wasm <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
-            <canvas style={{display: this.state.view != "canvas" ? "none" : ""}} className="outputCanvas" ref={(self: any) => this.canvas = self} width={384} height={256} />
-            <EditorComponent style={{display: this.state.view == "canvas" ? "none" : ""}} ref={(self: any) => this.viewEditor = self} name="view" save={false} readOnly={true} fontSize={10} />
+            <EditorComponent ref={(self: any) => this.viewEditor = self} name="view" save={false} readOnly={true} fontSize={10} />
           </div>
-          {/*<div>
-            <div className="editorHeader"><span className="editorHeaderTitle">wasm</span>
-              <div className="editorHeaderButtons">
-                <a title="Download" onClick={this.download.bind(this)}>Download <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
-              </div>
-            </div>
-            <EditorComponent ref={(self: any) => this.wasmEditor = self} name="wasm" save={false} readOnly={true} fontSize={10}/>
-          </div>*/}
           <div>
             <div className="editorHeader"><span className="editorHeaderTitle">Output</span>
               <div className="editorHeaderButtons">
-                <a title="Clear Output" onClick={this.clear.bind(this)}>Clear <i className="fa fa-close fa-lg" aria-hidden="true"></i></a>
+                <a title="Toggle Canvas" onClick={this.toggleCanvas.bind(this)}>{this.state.showCanvas ? "Hide" : "Show"} Canvas <i className="fa fa-picture-o fa-lg" aria-hidden="true"></i></a>{' '}
+                <a title="Clear Output" onClick={this.clear.bind(this)}>Clear Output <i className="fa fa-close fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
             <EditorComponent ref={(self: any) => this.outputEditor = self} name="output" save={false} readOnly={true} />
