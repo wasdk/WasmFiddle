@@ -4,7 +4,7 @@ import { State } from "./State";
 import { EditorComponent } from "./components/Editor";
 import { CompilerOptionsComponent } from "./components/CompilerOptions";
 import { lib } from "./lib"
-
+import { IFrameSandbox } from "./iframesandbox";
 
 declare var Mousetrap: any;
 declare var Promise: any;
@@ -31,6 +31,7 @@ export class AppComponent extends React.Component<void, {
   }
 
   canvas: HTMLCanvasElement;
+  func: IFrameSandbox;
 
   installKeyboardShortcuts() {
     Mousetrap.bind(['ctrl+shift+enter'], (e: any) => {
@@ -193,7 +194,11 @@ export class AppComponent extends React.Component<void, {
     }
     // |buffer| is needed for backward compatibility
     let self = this;
-    let func = new Function("wasmCode", "buffer", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
+    let func = new IFrameSandbox("wasmCode", "buffer", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
+
+    if (self.func) self.func.destroy();
+    self.func = func;
+
     try {
       lib.log = function (x: any) {
         self.appendOutput(String(x));
@@ -201,7 +206,7 @@ export class AppComponent extends React.Component<void, {
       lib.showCanvas = function (x: boolean = true) {
         self.setState({showCanvas: x} as any);
       };
-      func(this.wasmCode, this.wasmCode, lib, lib.log, State.app.canvas);
+      func.call(this.wasmCode, this.wasmCode, lib, lib.log, State.app.canvas);
     } catch (x) {
       self.appendOutput(x);
       State.sendAppEvent("error", "Run Harness");

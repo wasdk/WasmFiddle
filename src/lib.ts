@@ -86,6 +86,7 @@ function dumpMemory(memory: (Uint8Array|ArrayBuffer), ptr: number, len: number):
 
 export let lib = {
   log: null as any,
+  showCanvas: null as any,
   UTF8ArrayToString: UTF8ArrayToString,
   setStackPtr: setStackPtr,
   dumpMemory: dumpMemory
