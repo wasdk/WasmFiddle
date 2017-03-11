@@ -160,3 +160,13 @@ a:hover {
   font-size: 11px;
   border-radius: 1em;
 }
+
+iframe.hidden {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 10;
+  height: 10;
+  z-index: -1000;
+  visibility: hidden;
+}

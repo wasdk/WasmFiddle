@@ -199,18 +199,17 @@ export class AppComponent extends React.Component<void, {
     if (self.func) self.func.destroy();
     self.func = func;
 
-    try {
-      lib.log = function (x: any) {
-        self.appendOutput(String(x));
-      };
-      lib.showCanvas = function (x: boolean = true) {
-        self.setState({showCanvas: x} as any);
-      };
-      func.call(this.wasmCode, this.wasmCode, lib, lib.log, State.app.canvas);
-    } catch (x) {
+    lib.log = function (x: any) {
+      self.appendOutput(String(x));
+    };
+    lib.showCanvas = function (x: boolean = true) {
+      self.setState({showCanvas: x} as any);
+    };
+    func.onerror = (x) => {
       self.appendOutput(x);
       State.sendAppEvent("error", "Run Harness");
-    }
+    };
+    func.call(this.wasmCode, this.wasmCode, lib, lib.log, State.app.canvas);
   }
 
   compileToWasm(src: string, options: string, cb: (buffer: Uint8Array, annotations?: any[]) => void) {
