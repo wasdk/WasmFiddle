@@ -40,45 +40,58 @@
 /******/ 	return __webpack_require__(0);
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ 0:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	const React = __webpack_require__(1);
-	const ReactDOM = __webpack_require__(2);
-	const App_1 = __webpack_require__(3);
-	ReactDOM.render(React.createElement(App_1.AppComponent, null), document.getElementById("app"));
+	var React = __webpack_require__(1);
+	var ReactDOM = __webpack_require__(2);
+	var App_1 = __webpack_require__(3);
+	if (typeof WebAssembly === "object") {
+	    ReactDOM.render(React.createElement(App_1.AppComponent, null), document.getElementById("app"));
+	}
+	else {
+	    ReactDOM.render(React.createElement("div", {className: "notSupported"}, "WebAssembly is not yet available in your browser. Please use the latest version of Firefox or Chrome."), document.getElementById("app"));
+	}
 
 
 /***/ },
-/* 1 */
+
+/***/ 1:
 /***/ function(module, exports) {
 
 	module.exports = React;
 
 /***/ },
-/* 2 */
+
+/***/ 2:
 /***/ function(module, exports) {
 
 	module.exports = ReactDOM;
 
 /***/ },
-/* 3 */
+
+/***/ 3:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	const React = __webpack_require__(1);
-	const State_1 = __webpack_require__(4);
-	const Editor_1 = __webpack_require__(5);
-	const CompilerOptions_1 = __webpack_require__(6);
-	const lib_1 = __webpack_require__(7);
-	const iframesandbox_1 = __webpack_require__(8);
-	class AppComponent extends React.Component {
-	    constructor() {
-	        super();
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var React = __webpack_require__(1);
+	var State_1 = __webpack_require__(49);
+	var Editor_1 = __webpack_require__(51);
+	var CompilerOptions_1 = __webpack_require__(52);
+	var lib_1 = __webpack_require__(50);
+	var iframesandbox_1 = __webpack_require__(53);
+	var AppComponent = (function (_super) {
+	    __extends(AppComponent, _super);
+	    function AppComponent() {
+	        _super.call(this);
 	        this.mainEditor = null;
 	        this.viewEditor = null;
 	        this.wasmEditor = null;
@@ -97,32 +110,33 @@
 	            showCanvas: false
 	        };
 	    }
-	    installKeyboardShortcuts() {
-	        Mousetrap.bind(['ctrl+shift+enter'], (e) => {
-	            this.run();
+	    AppComponent.prototype.installKeyboardShortcuts = function () {
+	        var _this = this;
+	        Mousetrap.bind(['ctrl+shift+enter'], function (e) {
+	            _this.run();
 	            e.preventDefault();
 	        });
-	        Mousetrap.bind(['ctrl+enter'], (e) => {
-	            this.runHarness();
+	        Mousetrap.bind(['ctrl+enter'], function (e) {
+	            _this.runHarness();
 	            e.preventDefault();
 	        });
-	        Mousetrap.bind(['command+s'], (e) => {
-	            this.saveFiddleStateToURI();
+	        Mousetrap.bind(['command+s'], function (e) {
+	            _this.saveFiddleStateToURI();
 	            e.preventDefault();
 	        });
-	    }
-	    componentDidMount() {
+	    };
+	    AppComponent.prototype.componentDidMount = function () {
 	        this.init();
-	    }
-	    compilerOptionsChanged(options) {
-	        let isC = options.indexOf("C++") < 0;
-	        this.setState({ compilerOptions: options, isC });
-	    }
-	    onResize() {
+	    };
+	    AppComponent.prototype.compilerOptionsChanged = function (options) {
+	        var isC = options.indexOf("C++") < 0;
+	        this.setState({ compilerOptions: options, isC: isC });
+	    };
+	    AppComponent.prototype.onResize = function () {
 	        // State.resize();
 	        this.mainEditor.editor.resize();
-	    }
-	    download(what) {
+	    };
+	    AppComponent.prototype.download = function (what) {
 	        var url = "";
 	        var name = "";
 	        if (what == "wasm") {
@@ -142,26 +156,26 @@
 	        if (this.downloadLink.href != document.location) {
 	            this.downloadLink.click();
 	        }
-	    }
-	    assemble() {
-	    }
-	    loadFiddledStateFromURI(fiddleURI) {
+	    };
+	    AppComponent.prototype.assemble = function () {
+	    };
+	    AppComponent.prototype.loadFiddledStateFromURI = function (fiddleURI) {
 	        State_1.State.fiddleURI = fiddleURI;
 	        var xhr = new XMLHttpRequest();
-	        let self = this;
+	        var self = this;
 	        xhr.addEventListener("load", function () {
 	            self.loadFiddledState(JSON.parse(this.response));
 	            history.replaceState({}, fiddleURI, '?' + State_1.State.fiddleURI);
 	        });
-	        let url = "https://api.myjson.com/bins/" + fiddleURI;
+	        var url = "https://api.myjson.com/bins/" + fiddleURI;
 	        xhr.open("GET", url, true);
 	        xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
 	        xhr.send();
-	    }
-	    saveFiddleStateToURI() {
+	    };
+	    AppComponent.prototype.saveFiddleStateToURI = function () {
 	        var xhr = new XMLHttpRequest();
 	        xhr.addEventListener("load", function () {
-	            let uri = JSON.parse(this.response).uri;
+	            var uri = JSON.parse(this.response).uri;
 	            uri = uri.substring(uri.lastIndexOf("/") + 1);
 	            State_1.State.fiddleURI = uri;
 	            State_1.State.app.forceUpdate();
@@ -170,11 +184,11 @@
 	        xhr.open("POST", "//api.myjson.com/bins", true);
 	        xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
 	        xhr.send(JSON.stringify(this.saveFiddleState()));
-	    }
-	    init() {
-	        let uri = window.location.search.substring(1);
+	    };
+	    AppComponent.prototype.init = function () {
+	        var uri = window.location.search.substring(1);
 	        if (uri) {
-	            let i = uri.indexOf("/");
+	            var i = uri.indexOf("/");
 	            if (i > 0) {
 	                uri = uri.substring(0, i);
 	            }
@@ -191,8 +205,8 @@
 	                }
 	            });
 	        }
-	    }
-	    saveFiddleState() {
+	    };
+	    AppComponent.prototype.saveFiddleState = function () {
 	        return {
 	            editors: {
 	                main: this.mainEditor.editor.getValue(),
@@ -200,8 +214,8 @@
 	            },
 	            compilerOptions: this.state.compilerOptions
 	        };
-	    }
-	    loadFiddledState(fiddleState) {
+	    };
+	    AppComponent.prototype.loadFiddledState = function (fiddleState) {
 	        // For backwards compatibility.
 	        if (fiddleState.editors["main.c"]) {
 	            fiddleState.editors.main = fiddleState.editors["main.c"];
@@ -212,54 +226,56 @@
 	        this.mainEditor.editor.setValue(fiddleState.editors.main, -1);
 	        this.harnessEditor.editor.setValue(fiddleState.editors.harness, -1);
 	        if (fiddleState.compilerOptions) {
-	            let isC = fiddleState.compilerOptions.indexOf("C++") < 0;
-	            this.setState({ compilerOptions: fiddleState.compilerOptions, isC });
+	            var isC = fiddleState.compilerOptions.indexOf("C++") < 0;
+	            this.setState({ compilerOptions: fiddleState.compilerOptions, isC: isC });
 	        }
-	    }
-	    run() {
-	        let main = this.mainEditor;
-	        let options = this.state.compilerOptions;
-	        this.compileToWasm(main.editor.getValue(), options, (result, annotations) => {
+	    };
+	    AppComponent.prototype.run = function () {
+	        var _this = this;
+	        var main = this.mainEditor;
+	        var options = this.state.compilerOptions;
+	        this.compileToWasm(main.editor.getValue(), options, function (result, annotations) {
 	            main.editor.getSession().clearAnnotations();
 	            if (annotations.length) {
 	                main.editor.getSession().setAnnotations(annotations);
-	                this.appendOutput(String(result));
+	                _this.appendOutput(String(result));
 	                return;
 	            }
-	            this.wasmCode = result;
-	            this.runHarness();
-	            this.forceUpdate();
+	            _this.wasmCode = result;
+	            _this.runHarness();
+	            _this.forceUpdate();
 	        });
-	    }
-	    runHarness() {
+	    };
+	    AppComponent.prototype.runHarness = function () {
 	        State_1.State.sendAppEvent("run", "Harness");
 	        if (!this.wasmCode) {
 	            this.appendOutput("Compile a WebAssembly module first.");
 	            return;
 	        }
 	        // |buffer| is needed for backward compatibility
-	        let self = this;
-	        let func = new iframesandbox_1.IFrameSandbox("wasmCode", "buffer", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
+	        var self = this;
+	        var func = new iframesandbox_1.IFrameSandbox("wasmCode", "buffer", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
 	        if (self.func)
 	            self.func.destroy();
 	        self.func = func;
 	        lib_1.lib.log = function (x) {
 	            self.appendOutput(String(x));
 	        };
-	        lib_1.lib.showCanvas = function (x = true) {
+	        lib_1.lib.showCanvas = function (x) {
+	            if (x === void 0) { x = true; }
 	            self.setState({ showCanvas: x });
 	        };
-	        func.onerror = (x) => {
+	        func.onerror = function (x) {
 	            self.appendOutput(x);
 	            State_1.State.sendAppEvent("error", "Run Harness");
 	        };
 	        func.call(this.wasmCode, this.wasmCode, lib_1.lib, lib_1.lib.log, State_1.State.app.canvas);
-	    }
-	    compileToWasm(src, options, cb) {
+	    };
+	    AppComponent.prototype.compileToWasm = function (src, options, cb) {
 	        State_1.State.sendAppEvent("compile", "To Wasm");
-	        let self = this;
+	        var self = this;
 	        src = encodeURIComponent(src).replace('%20', '+');
-	        let action = this.state.isC ? "c2wast" : "cpp2wast";
+	        var action = this.state.isC ? "c2wast" : "cpp2wast";
 	        options = encodeURIComponent(options);
 	        self.setState({ isCompiling: true });
 	        State_1.State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
@@ -269,7 +285,7 @@
 	                State_1.State.sendAppEvent("error", "Compile to Wasm");
 	                return;
 	            }
-	            let annotations = State_1.State.getAnnotations(this.responseText);
+	            var annotations = State_1.State.getAnnotations(this.responseText);
 	            if (annotations.length) {
 	                cb(this.responseText, annotations);
 	                State_1.State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
@@ -288,25 +304,26 @@
 	                cb(data, []);
 	            });
 	        });
-	    }
-	    appendOutput(s) {
+	    };
+	    AppComponent.prototype.appendOutput = function (s) {
 	        this.outputEditor.editor.insert(s + "\n");
 	        this.outputEditor.editor.gotoLine(Infinity);
-	    }
-	    share() {
+	    };
+	    AppComponent.prototype.share = function () {
 	        this.saveFiddleStateToURI();
 	        State_1.State.sendAppEvent("save", "Fiddle state to URI");
-	    }
-	    toggleCanvas() {
+	    };
+	    AppComponent.prototype.toggleCanvas = function () {
 	        this.setState({ showCanvas: !this.state.showCanvas });
-	    }
-	    clear() {
+	    };
+	    AppComponent.prototype.clear = function () {
 	        this.outputEditor.editor.setValue("");
-	    }
-	    onViewChanged(e) {
+	    };
+	    AppComponent.prototype.onViewChanged = function (e) {
 	        this.setState({ view: e.target.value });
-	    }
-	    render() {
+	    };
+	    AppComponent.prototype.render = function () {
+	        var _this = this;
 	        if (this.viewEditor) {
 	            if (this.state.view === "wast") {
 	                this.viewEditor.editor.setValue(this.wast, -1);
@@ -315,95 +332,107 @@
 	                this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.wasmCode) + "]);", -1);
 	            }
 	        }
-	        return React.createElement("div", { className: "gAppContainer" },
-	            React.createElement("a", { style: { display: "none" }, ref: (self) => this.downloadLink = self }),
-	            React.createElement("div", { className: "gHeader" },
-	                React.createElement("div", null,
-	                    React.createElement("div", { className: "canvasOverlay", style: { display: this.state.showCanvas ? "" : "none" } },
-	                        React.createElement("div", { className: "editorHeader" },
-	                            React.createElement("div", { className: "editorHeaderButtons" },
-	                                React.createElement("a", { title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this) },
-	                                    this.state.showCanvas ? "Hide" : "Show",
-	                                    " Canvas ",
-	                                    React.createElement("i", { className: "fa fa-picture-o fa-lg", "aria-hidden": "true" })))),
-	                        React.createElement("canvas", { className: "outputCanvas", ref: (self) => this.canvas = self, width: 1024, height: 1024 })),
-	                    React.createElement("img", { src: "img/web-assembly-icon-white-64px.png", className: "waIcon" })),
-	                React.createElement("div", { className: "gShareURI" }, window.location.origin + window.location.pathname + '?' + State_1.State.fiddleURI),
-	                React.createElement("div", { className: "gShareButton" },
-	                    React.createElement("i", { title: "Share", onClick: this.share.bind(this), className: "fa fa-cloud-upload fa-2x", "aria-hidden": "true" }))),
-	            React.createElement("div", null,
-	                React.createElement("div", { className: "gV2" },
-	                    React.createElement("div", null,
-	                        React.createElement("div", { className: "editorHeader" },
-	                            React.createElement("span", { className: "editorHeaderTitle" }, this.state.isC ? "C" : "C++"),
-	                            React.createElement("div", { className: "editorHeaderButtons" },
-	                                React.createElement(CompilerOptions_1.CompilerOptionsComponent, { options: this.state.compilerOptions, onChange: this.compilerOptionsChanged.bind(this) }),
-	                                ' ',
-	                                React.createElement("a", { title: "Compile & Run: CTRL + Shift + Return", onClick: this.run.bind(this) },
-	                                    "Compile & Run ",
-	                                    React.createElement("i", { className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true" })))),
-	                        React.createElement(Editor_1.EditorComponent, { ref: (self) => this.mainEditor = self, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true })),
-	                    React.createElement("div", null,
-	                        React.createElement("div", { className: "editorHeader" },
-	                            React.createElement("span", { className: "editorHeaderTitle" }, "JS"),
-	                            React.createElement("div", { className: "editorHeaderButtons" },
-	                                React.createElement("a", { title: "Run: CTRL + Return", onClick: this.runHarness.bind(this) },
-	                                    "Run ",
-	                                    React.createElement("i", { className: "fa fa-play-circle fa-lg", "aria-hidden": "true" })))),
-	                        React.createElement(Editor_1.EditorComponent, { ref: (self) => this.harnessEditor = self, name: "harness", mode: "ace/mode/javascript", showGutter: true, showLineNumbers: true })))),
-	            React.createElement("div", null,
-	                React.createElement("div", { className: "gV2" },
-	                    React.createElement("div", null,
-	                        React.createElement("div", { className: "editorHeader" },
-	                            React.createElement("select", { title: "Optimization Level", value: this.state.view, onChange: this.onViewChanged.bind(this) },
-	                                React.createElement("option", { value: "wast" }, "Text Format"),
-	                                React.createElement("option", { value: "wasm" }, "Code Buffer")),
-	                            React.createElement("div", { className: "editorHeaderButtons" },
-	                                "Download ",
-	                                React.createElement("a", { title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast") },
-	                                    "Wast ",
-	                                    React.createElement("i", { className: "fa fa-download fa-lg", "aria-hidden": "true" })),
-	                                ' ',
-	                                React.createElement("a", { title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm") },
-	                                    "Wasm ",
-	                                    React.createElement("i", { className: "fa fa-download fa-lg", "aria-hidden": "true" })))),
-	                        React.createElement(Editor_1.EditorComponent, { ref: (self) => this.viewEditor = self, name: "view", save: false, readOnly: true, fontSize: 10 })),
-	                    React.createElement("div", null,
-	                        React.createElement("div", { className: "editorHeader" },
-	                            React.createElement("span", { className: "editorHeaderTitle" }, "Output"),
-	                            React.createElement("div", { className: "editorHeaderButtons" },
-	                                React.createElement("a", { title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this) },
-	                                    this.state.showCanvas ? "Hide" : "Show",
-	                                    " Canvas ",
-	                                    React.createElement("i", { className: "fa fa-picture-o fa-lg", "aria-hidden": "true" })),
-	                                ' ',
-	                                React.createElement("a", { title: "Clear Output", onClick: this.clear.bind(this) },
-	                                    "Clear Output ",
-	                                    React.createElement("i", { className: "fa fa-close fa-lg", "aria-hidden": "true" })))),
-	                        React.createElement(Editor_1.EditorComponent, { ref: (self) => this.outputEditor = self, name: "output", save: false, readOnly: true })))));
-	    }
-	}
+	        return React.createElement("div", {className: "gAppContainer"}, 
+	            React.createElement("a", {style: { display: "none" }, ref: function (self) { return _this.downloadLink = self; }}), 
+	            React.createElement("div", {className: "gHeader"}, 
+	                React.createElement("div", null, 
+	                    React.createElement("div", {className: "canvasOverlay", style: { display: this.state.showCanvas ? "" : "none" }}, 
+	                        React.createElement("div", {className: "editorHeader"}, 
+	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                React.createElement("a", {title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this)}, 
+	                                    this.state.showCanvas ? "Hide" : "Show", 
+	                                    " Canvas ", 
+	                                    React.createElement("i", {className: "fa fa-picture-o fa-lg", "aria-hidden": "true"}))
+	                            )
+	                        ), 
+	                        React.createElement("canvas", {className: "outputCanvas", ref: function (self) { return _this.canvas = self; }, width: 1024, height: 1024})), 
+	                    React.createElement("img", {src: "img/web-assembly-icon-white-64px.png", className: "waIcon"})), 
+	                React.createElement("div", {className: "gShareURI"}, window.location.origin + window.location.pathname + '?' + State_1.State.fiddleURI), 
+	                React.createElement("div", {className: "gShareButton"}, 
+	                    React.createElement("a", {title: "Compile & Run: CTRL + Shift + Return", onClick: this.run.bind(this)}, 
+	                        React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-2x", "aria-hidden": "true"})
+	                    ), 
+	                    ' ', 
+	                    React.createElement("i", {title: "Share", onClick: this.share.bind(this), className: "fa fa-cloud-upload fa-2x", "aria-hidden": "true"}))), 
+	            React.createElement("div", null, 
+	                React.createElement("div", {className: "gV2"}, 
+	                    React.createElement("div", null, 
+	                        React.createElement("div", {className: "editorHeader"}, 
+	                            React.createElement("span", {className: "editorHeaderTitle"}, this.state.isC ? "C" : "C++"), 
+	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                React.createElement(CompilerOptions_1.CompilerOptionsComponent, {options: this.state.compilerOptions, onChange: this.compilerOptionsChanged.bind(this)}), 
+	                                ' ', 
+	                                React.createElement("a", {title: "Compile & Run: CTRL + Shift + Return", onClick: this.run.bind(this)}, 
+	                                    "Compile & Run ", 
+	                                    React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true"})))), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.mainEditor = self; }, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true})), 
+	                    React.createElement("div", null, 
+	                        React.createElement("div", {className: "editorHeader"}, 
+	                            React.createElement("span", {className: "editorHeaderTitle"}, "JS"), 
+	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                React.createElement("a", {title: "Run: CTRL + Return", onClick: this.runHarness.bind(this)}, 
+	                                    "Run ", 
+	                                    React.createElement("i", {className: "fa fa-play-circle fa-lg", "aria-hidden": "true"}))
+	                            )), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.harnessEditor = self; }, name: "harness", mode: "ace/mode/javascript", showGutter: true, showLineNumbers: true})))
+	            ), 
+	            React.createElement("div", null, 
+	                React.createElement("div", {className: "gV2"}, 
+	                    React.createElement("div", null, 
+	                        React.createElement("div", {className: "editorHeader"}, 
+	                            React.createElement("select", {title: "Optimization Level", value: this.state.view, onChange: this.onViewChanged.bind(this)}, 
+	                                React.createElement("option", {value: "wast"}, "Text Format"), 
+	                                React.createElement("option", {value: "wasm"}, "Code Buffer")), 
+	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                "Download ", 
+	                                React.createElement("a", {title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
+	                                    "Wast ", 
+	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})), 
+	                                ' ', 
+	                                React.createElement("a", {title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
+	                                    "Wasm ", 
+	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})))), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.viewEditor = self; }, name: "view", save: false, readOnly: true, fontSize: 10})), 
+	                    React.createElement("div", null, 
+	                        React.createElement("div", {className: "editorHeader"}, 
+	                            React.createElement("span", {className: "editorHeaderTitle"}, "Output"), 
+	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                React.createElement("a", {title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this)}, 
+	                                    this.state.showCanvas ? "Hide" : "Show", 
+	                                    " Canvas ", 
+	                                    React.createElement("i", {className: "fa fa-picture-o fa-lg", "aria-hidden": "true"})), 
+	                                ' ', 
+	                                React.createElement("a", {title: "Clear Output", onClick: this.clear.bind(this)}, 
+	                                    "Clear Output ", 
+	                                    React.createElement("i", {className: "fa fa-close fa-lg", "aria-hidden": "true"})))), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.outputEditor = self; }, name: "output", save: false, readOnly: true})))
+	            ));
+	    };
+	    return AppComponent;
+	}(React.Component));
 	exports.AppComponent = AppComponent;
 
 
 /***/ },
-/* 4 */
+
+/***/ 49:
 /***/ function(module, exports) {
 
 	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	class State {
-	    static sendServiceEvent(label) {
+	var State = (function () {
+	    function State() {
+	    }
+	    State.sendServiceEvent = function (label) {
 	        var evt = document.createEvent('CustomEvent');
 	        evt.initCustomEvent('serviceevent', false, false, { 'category': 'Service', 'action': 'send', 'label': label });
 	        window.dispatchEvent(evt);
-	    }
-	    static sendAppEvent(action, label) {
+	    };
+	    State.sendAppEvent = function (action, label) {
 	        var evt = document.createEvent('CustomEvent');
 	        evt.initCustomEvent('serviceevent', false, false, { 'category': 'App', 'action': action, 'label': label });
 	        window.dispatchEvent(evt);
-	    }
-	    static sendRequest(command, cb) {
+	    };
+	    State.sendRequest = function (command, cb) {
 	        var self = this;
 	        var xhr = new XMLHttpRequest();
 	        xhr.addEventListener("load", function () {
@@ -412,8 +441,8 @@
 	        xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
 	        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	        xhr.send(command);
-	    }
-	    static getAnnotations(response) {
+	    };
+	    State.getAnnotations = function (response) {
 	        // Parse and annotate errors if compilation fails.
 	        var annotations = [];
 	        if (response.indexOf("(module") !== 0) {
@@ -435,154 +464,19 @@
 	            }
 	        }
 	        return annotations;
-	    }
-	}
-	State.fiddleURI = "";
+	    };
+	    State.fiddleURI = "";
+	    return State;
+	}());
 	exports.State = State;
 
 
 /***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	const React = __webpack_require__(1);
-	const State_1 = __webpack_require__(4);
-	class EditorComponent extends React.Component {
-	    componentDidMount() {
-	        let editor = this.editor = ace.edit(this.container);
-	        var theme = true ? "ace/theme/monokai" : "ace/theme/github";
-	        // editor.setValue(this.props.source, -1);
-	        editor.setReadOnly(this.props.readOnly);
-	        editor.setTheme(theme);
-	        editor.setFontSize(this.props.fontSize);
-	        editor.getSession().setUseSoftTabs(true);
-	        editor.getSession().setTabSize(2);
-	        editor.setShowPrintMargin(false);
-	        editor.setOptions({
-	            wrap: true,
-	            enableBasicAutocompletion: true,
-	            // enableSnippets: true,
-	            // enableLiveAutocompletion: true,
-	            showLineNumbers: this.props.showLineNumbers,
-	            showGutter: this.props.showGutter
-	        });
-	        editor.$blockScrolling = Infinity;
-	        editor.renderer.setScrollMargin(10, 10);
-	        editor.getSession().setMode(this.props.mode);
-	        let action = this.props.action;
-	        let self = this;
-	        editor.commands.addCommands([{
-	                bindKey: { win: "Ctrl-S", mac: "Command-S" }, exec: function () {
-	                    State_1.State.app.share();
-	                }
-	            },
-	            {
-	                bindKey: { win: "Ctrl-Shift-Return", mac: "Ctrl-Shift-Return" }, exec: function () {
-	                    State_1.State.app.run();
-	                }
-	            },
-	            {
-	                bindKey: { win: "Ctrl-Return", mac: "Ctrl-Return" }, exec: function () {
-	                    State_1.State.app.runHarness();
-	                }
-	            }
-	        ]);
-	    }
-	    onChange() {
-	    }
-	    render() {
-	        return React.createElement("div", { style: this.props.style, ref: (self) => this.container = self, className: "editorBody" });
-	    }
-	}
-	EditorComponent.defaultProps = {
-	    // source: "",
-	    mode: "",
-	    action: "",
-	    save: true,
-	    readOnly: false,
-	    showGutter: false,
-	    showLineNumbers: false,
-	    fontSize: 11,
-	    style: null
-	};
-	exports.EditorComponent = EditorComponent;
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	const React = __webpack_require__(1);
-	class CompilerOptionsComponent extends React.Component {
-	    constructor() {
-	        super();
-	        this.dialects = ["-std=C89", "-std=C99", "-std=C++98", "-std=C++11", "-std=C++14", "-std=C++1z"];
-	        this.optimizationLevels = ["-O0", "-O1", "-O2", "-O3", "-O4", "-Os"];
-	        this.state = {
-	            dialect: "-std=C99",
-	            optimizationLevel: "-O3"
-	        };
-	    }
-	    componentDidMount() {
-	        if (this.props.options) {
-	            this.loadState(this.props.options);
-	        }
-	    }
-	    componentWillReceiveProps(props) {
-	        if (props.options) {
-	            this.loadState(props.options);
-	        }
-	    }
-	    optimizationLevelChanged(e) {
-	        this.setState({ optimizationLevel: e.target.value }, () => {
-	            this.onChange();
-	        });
-	    }
-	    dialectChanged(e) {
-	        this.setState({ dialect: e.target.value }, () => {
-	            this.onChange();
-	        });
-	    }
-	    loadState(options) {
-	        let s = {};
-	        options.split(" ").forEach(o => {
-	            if (o.indexOf("-O") == 0) {
-	                s.optimizationLevel = o;
-	            }
-	            else if (o.indexOf("-std=") == 0) {
-	                s.dialect = o;
-	            }
-	        });
-	        this.setState(s);
-	    }
-	    saveState() {
-	        return [this.state.optimizationLevel, this.state.dialect].join(" ");
-	    }
-	    onChange() {
-	        if (this.props.onChange) {
-	            this.props.onChange(this.saveState());
-	        }
-	    }
-	    render() {
-	        return React.createElement("span", null,
-	            React.createElement("select", { title: "Optimization Level", value: this.state.optimizationLevel, onChange: this.optimizationLevelChanged.bind(this) }, this.optimizationLevels.map(x => React.createElement("option", { key: x }, x))),
-	            ' ',
-	            React.createElement("select", { title: "Dialect", value: this.state.dialect, onChange: this.dialectChanged.bind(this) }, this.dialects.map(x => React.createElement("option", { key: x }, x))));
-	    }
-	}
-	exports.CompilerOptionsComponent = CompilerOptionsComponent;
-
-
-/***/ },
-/* 7 */
+/***/ 50:
 /***/ function(module, exports) {
 
 	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
 	function UTF8ArrayToString(u8Array, idx) {
 	    var endPtr = idx;
 	    while (u8Array[endPtr])
@@ -641,7 +535,7 @@
 	    new Int32Array(buffer)[1] = ptr;
 	}
 	function dumpMemory(memory, ptr, len) {
-	    let m = new Uint8Array(memory.buffer || memory);
+	    var m = new Uint8Array(memory.buffer || memory);
 	    function padAddress(s) {
 	        while (s.length < 8)
 	            s = "0" + s;
@@ -658,15 +552,15 @@
 	        }
 	        return String.fromCharCode(i);
 	    }
-	    let str = "";
-	    for (let i = ptr; i < len; i += 16) {
+	    var str = "";
+	    for (var i = ptr; i < len; i += 16) {
 	        str += padAddress(i.toString(16).toUpperCase());
 	        str += " ";
-	        for (let j = i; j < i + 16; j++) {
+	        for (var j = i; j < i + 16; j++) {
 	            str += padByte(m[j].toString(16).toUpperCase());
 	        }
 	        str += " ";
-	        for (let j = i; j < i + 16; j++) {
+	        for (var j = i; j < i + 16; j++) {
 	            str += ascii(m[j]);
 	        }
 	        str += "\n";
@@ -683,44 +577,199 @@
 
 
 /***/ },
-/* 8 */
+
+/***/ 51:
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var React = __webpack_require__(1);
+	var State_1 = __webpack_require__(49);
+	var EditorComponent = (function (_super) {
+	    __extends(EditorComponent, _super);
+	    function EditorComponent() {
+	        _super.apply(this, arguments);
+	    }
+	    EditorComponent.prototype.componentDidMount = function () {
+	        var editor = this.editor = ace.edit(this.container);
+	        var theme = true ? "ace/theme/monokai" : "ace/theme/github";
+	        // editor.setValue(this.props.source, -1);
+	        editor.setReadOnly(this.props.readOnly);
+	        editor.setTheme(theme);
+	        editor.setFontSize(this.props.fontSize);
+	        editor.getSession().setUseSoftTabs(true);
+	        editor.getSession().setTabSize(2);
+	        editor.setShowPrintMargin(false);
+	        editor.setOptions({
+	            wrap: true,
+	            enableBasicAutocompletion: true,
+	            // enableSnippets: true,
+	            // enableLiveAutocompletion: true,
+	            showLineNumbers: this.props.showLineNumbers,
+	            showGutter: this.props.showGutter
+	        });
+	        editor.$blockScrolling = Infinity;
+	        editor.renderer.setScrollMargin(10, 10);
+	        editor.getSession().setMode(this.props.mode);
+	        var action = this.props.action;
+	        var self = this;
+	        editor.commands.addCommands([{
+	                bindKey: { win: "Ctrl-S", mac: "Command-S" }, exec: function () {
+	                    State_1.State.app.share();
+	                }
+	            },
+	            {
+	                bindKey: { win: "Ctrl-Shift-Return", mac: "Ctrl-Shift-Return" }, exec: function () {
+	                    State_1.State.app.run();
+	                }
+	            },
+	            {
+	                bindKey: { win: "Ctrl-Return", mac: "Ctrl-Return" }, exec: function () {
+	                    State_1.State.app.runHarness();
+	                }
+	            }
+	        ]);
+	    };
+	    EditorComponent.prototype.onChange = function () {
+	    };
+	    EditorComponent.prototype.render = function () {
+	        var _this = this;
+	        return React.createElement("div", {style: this.props.style, ref: function (self) { return _this.container = self; }, className: "editorBody"});
+	    };
+	    EditorComponent.defaultProps = {
+	        // source: "",
+	        mode: "",
+	        action: "",
+	        save: true,
+	        readOnly: false,
+	        showGutter: false,
+	        showLineNumbers: false,
+	        fontSize: 11,
+	        style: null
+	    };
+	    return EditorComponent;
+	}(React.Component));
+	exports.EditorComponent = EditorComponent;
+
+
+/***/ },
+
+/***/ 52:
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var React = __webpack_require__(1);
+	var CompilerOptionsComponent = (function (_super) {
+	    __extends(CompilerOptionsComponent, _super);
+	    function CompilerOptionsComponent() {
+	        _super.call(this);
+	        this.dialects = ["-std=C89", "-std=C99", "-std=C++98", "-std=C++11", "-std=C++14", "-std=C++1z"];
+	        this.optimizationLevels = ["-O0", "-O1", "-O2", "-O3", "-O4", "-Os"];
+	        this.state = {
+	            dialect: "-std=C99",
+	            optimizationLevel: "-O3"
+	        };
+	    }
+	    CompilerOptionsComponent.prototype.componentDidMount = function () {
+	        if (this.props.options) {
+	            this.loadState(this.props.options);
+	        }
+	    };
+	    CompilerOptionsComponent.prototype.componentWillReceiveProps = function (props) {
+	        if (props.options) {
+	            this.loadState(props.options);
+	        }
+	    };
+	    CompilerOptionsComponent.prototype.optimizationLevelChanged = function (e) {
+	        var _this = this;
+	        this.setState({ optimizationLevel: e.target.value }, function () {
+	            _this.onChange();
+	        });
+	    };
+	    CompilerOptionsComponent.prototype.dialectChanged = function (e) {
+	        var _this = this;
+	        this.setState({ dialect: e.target.value }, function () {
+	            _this.onChange();
+	        });
+	    };
+	    CompilerOptionsComponent.prototype.loadState = function (options) {
+	        var s = {};
+	        options.split(" ").forEach(function (o) {
+	            if (o.indexOf("-O") == 0) {
+	                s.optimizationLevel = o;
+	            }
+	            else if (o.indexOf("-std=") == 0) {
+	                s.dialect = o;
+	            }
+	        });
+	        this.setState(s);
+	    };
+	    CompilerOptionsComponent.prototype.saveState = function () {
+	        return [this.state.optimizationLevel, this.state.dialect].join(" ");
+	    };
+	    CompilerOptionsComponent.prototype.onChange = function () {
+	        if (this.props.onChange) {
+	            this.props.onChange(this.saveState());
+	        }
+	    };
+	    CompilerOptionsComponent.prototype.render = function () {
+	        return React.createElement("span", null, 
+	            React.createElement("select", {title: "Optimization Level", value: this.state.optimizationLevel, onChange: this.optimizationLevelChanged.bind(this)}, this.optimizationLevels.map(function (x) { return React.createElement("option", {key: x}, x); })), 
+	            ' ', 
+	            React.createElement("select", {title: "Dialect", value: this.state.dialect, onChange: this.dialectChanged.bind(this)}, this.dialects.map(function (x) { return React.createElement("option", {key: x}, x); })));
+	    };
+	    return CompilerOptionsComponent;
+	}(React.Component));
+	exports.CompilerOptionsComponent = CompilerOptionsComponent;
+
+
+/***/ },
+
+/***/ 53:
 /***/ function(module, exports) {
 
 	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	class IFrameSandbox {
-	    constructor(...args) {
+	var IFrameSandbox = (function () {
+	    function IFrameSandbox() {
+	        var _this = this;
+	        var args = [];
+	        for (var _i = 0; _i < arguments.length; _i++) {
+	            args[_i - 0] = arguments[_i];
+	        }
 	        var body = args.pop();
 	        var iframe = document.createElement('iframe');
 	        iframe.className = 'hidden';
-	        const BodyAtLine = 6;
-	        iframe.src = URL.createObjectURL(new Blob([`<!DOCTYPE html>
-	  <html>
-	  <head><meta charset='utf-8'></head>
-	  <body>
-	    <script>
-	  function run() {
-	  ${body}
-	  }
-	  frameElement.onready();
-	    </script>
-	  </body></html>`], { type: 'text/html' }));
+	        var BodyAtLine = 6;
+	        iframe.src = URL.createObjectURL(new Blob([("<!DOCTYPE html>\n  <html>\n  <head><meta charset='utf-8'></head>\n  <body>\n    <script>\n  function run() {\n  " + body + "\n  }\n  frameElement.onready();\n    </script>\n  </body></html>")], { type: 'text/html' }));
 	        document.body.appendChild(iframe);
 	        this._iframe = iframe;
-	        var onerror = (e, url, line) => {
+	        var onerror = function (e, url, line) {
 	            if (line)
-	                this.onerror(`line ${line - BodyAtLine}: ${e}`);
+	                _this.onerror("line " + (line - BodyAtLine) + ": " + e);
 	            else
-	                this.onerror(e);
+	                _this.onerror(e);
 	        };
-	        var ready = new Promise((resolve) => {
+	        var ready = new Promise(function (resolve) {
 	            var iframe_ = iframe;
-	            iframe_.onready = () => {
+	            iframe_.onready = function () {
 	                resolve(iframe.contentWindow);
 	            };
 	        });
-	        this.call = function (...values) {
-	            ready.then((w) => {
+	        this.call = function () {
+	            var values = [];
+	            for (var _i = 0; _i < arguments.length; _i++) {
+	                values[_i - 0] = arguments[_i];
+	            }
+	            ready.then(function (w) {
 	                w.onerror = onerror;
 	                for (var i = 0; i < values.length; i++)
 	                    w[args[i]] = values[i];
@@ -728,13 +777,15 @@
 	            });
 	        };
 	    }
-	    destroy() {
+	    IFrameSandbox.prototype.destroy = function () {
 	        this._iframe.remove();
-	    }
-	}
+	    };
+	    return IFrameSandbox;
+	}());
 	exports.IFrameSandbox = IFrameSandbox;
 
 
 /***/ }
-/******/ ]);
+
+/******/ });
 //# sourceMappingURL=bundle.js.map
