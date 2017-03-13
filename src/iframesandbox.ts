@@ -1,3 +1,5 @@
+declare var Promise: any;
+
 export class IFrameSandbox {
   private _iframe: Element;
 
@@ -44,7 +46,7 @@ export class IFrameSandbox {
       });
     };
   }
-  
+
   public destroy() {
     this._iframe.remove();
   }

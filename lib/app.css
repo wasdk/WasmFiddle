@@ -26,7 +26,7 @@ html, body {
   height: 100%;
   width: 100%;
   grid-template-rows: 100%;
-  grid-template-columns: 40px auto 44px;
+  grid-template-columns: 40px auto 100px;
 }
 
 .gShareURI {
@@ -37,6 +37,7 @@ html, body {
 }
 
 .gShareButton {
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
   justify-self: center;
   align-self: center;
 }
@@ -137,7 +138,6 @@ a:hover {
   height: 512px;
 }
 
-
 .canvasOverlay {
   top: 0;
   left: 0;
@@ -161,6 +161,34 @@ a:hover {
   border-radius: 1em;
 }
 
+.notSupported {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-right: auto;
+  margin-left: auto;
+  width: 400px;
+  height: 256px;
+  position: fixed;
+  z-index: 20;
+  opacity: 1;
+  background-color: rgba(20, 20, 20, 0.9);
+  padding-left: 10px;
+  vertical-align: middle;
+  color: white;
+  padding: 10px;
+  border-radius: 1em;
+  font-size: 16px;
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+  text-align: justify;
+}
+
+.hidden {
+  display: none;
+}
 iframe.hidden {
   position: fixed;
   top: 0;

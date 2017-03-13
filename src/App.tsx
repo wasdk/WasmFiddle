@@ -291,6 +291,7 @@ export class AppComponent extends React.Component<void, {
           {window.location.origin + window.location.pathname + '?' + State.fiddleURI}
         </div>
         <div className="gShareButton">
+          <a title="Compile & Run: CTRL + Shift + Return" onClick={this.run.bind(this)}><i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-2x"} aria-hidden="true"></i></a>{' '}
           <i title="Share" onClick={this.share.bind(this)} className="fa fa-cloud-upload fa-2x" aria-hidden="true"></i>
         </div>
       </div>
