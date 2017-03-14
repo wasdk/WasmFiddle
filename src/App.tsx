@@ -6,6 +6,10 @@ import { CompilerOptionsComponent } from "./components/CompilerOptions";
 import { lib } from "./lib"
 import { IFrameSandbox } from "./iframesandbox";
 
+declare var require: any;
+declare var WebAssembly: any;
+let { demangle } = require("demangle");
+
 declare var Mousetrap: any;
 declare var Promise: any;
 
@@ -15,6 +19,7 @@ export class AppComponent extends React.Component<void, {
   isC: boolean;
   view: string;
   showCanvas: boolean;
+  showSettings: boolean;
 }> {
 
   constructor() {
@@ -26,7 +31,8 @@ export class AppComponent extends React.Component<void, {
       isCompiling: false,
       isC: true,
       view: "wast",
-      showCanvas: false
+      showCanvas: false,
+      showSettings: false
     } as any;
   }
 
@@ -35,7 +41,7 @@ export class AppComponent extends React.Component<void, {
 
   installKeyboardShortcuts() {
     Mousetrap.bind(['ctrl+shift+enter'], (e: any) => {
-      this.run();
+      this.build();
       e.preventDefault();
     });
     Mousetrap.bind(['ctrl+enter'], (e: any) => {
@@ -171,7 +177,7 @@ export class AppComponent extends React.Component<void, {
   wasmCode: Uint8Array = null;
 
   wast: string = "";
-  run() {
+  build() {
     let main = this.mainEditor;
     let options = this.state.compilerOptions;
     this.compileToWasm(main.editor.getValue(), options, (result: Uint8Array | string, annotations: any[]) => {
@@ -182,19 +188,18 @@ export class AppComponent extends React.Component<void, {
         return;
       }
       this.wasmCode = result as Uint8Array;
-      this.runHarness();
       this.forceUpdate();
     });
   }
   runHarness() {
     State.sendAppEvent("run", "Harness");
     if (!this.wasmCode) {
-      this.appendOutput("Compile a WebAssembly module first.");
+      this.appendOutput("Build a WebAssembly module first.");
       return;
     }
     // |buffer| is needed for backward compatibility
     let self = this;
-    let func = new IFrameSandbox("wasmCode", "buffer", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
+    let func = new IFrameSandbox("wasmCode", "buffer", "wasmImports", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
 
     if (self.func) self.func.destroy();
     self.func = func;
@@ -209,7 +214,59 @@ export class AppComponent extends React.Component<void, {
       self.appendOutput(x);
       State.sendAppEvent("error", "Run Harness");
     };
-    func.call(this.wasmCode, this.wasmCode, lib, lib.log, State.app.canvas);
+
+    func.call(this.wasmCode, this.wasmCode, this.createWasmImports(false), lib, lib.log, State.app.canvas);
+  }
+
+  // createWasmImportsString() {
+  //   var wasmModule = new WebAssembly.Module(this.wasmCode);
+  //   let fun: string [] = [];
+  //   WebAssembly.Module.imports(wasmModule).forEach((i: any) => {
+  //     if (i.kind === "function" && i.module === "env") {
+  //       let name = demangle("_" + i.name);
+  //       let str = "";
+  //       str += `  // ${name}\n`;
+  //       str += "  " + i.name +  `: function ${i.name}() {\n  }`;
+  //       fun.push(str);
+  //     }
+  //   });
+  //   this.viewEditor.editor.setValue("var wasmEnvironment = {\n" + fun.join(",\n") + "\n};");
+  // }
+
+  createWasmImports(string: boolean): any {
+    let wasmImports: any = {};
+    WebAssembly.Module.imports(new WebAssembly.Module(this.wasmCode)).forEach((i: any) => {
+      if (!wasmImports[i.module]) {
+        wasmImports[i.module] = {};
+      }
+      if (i.kind === "function") {
+        let name = demangle("_" + i.name);
+        if (string) {
+          wasmImports[i.module][i.name] =
+          `    // ${name}\n` +
+          `    ${i.name}: function ${i.name} () {\n` +
+          `      // ...\n` +
+          `    }`;
+        } else {
+          wasmImports[i.module][i.name] = function () {
+            lib.log(`NYI: ${i.name} ${name}`);
+          };
+        }
+      }
+    });
+    if (string) {
+      let keys = Object.keys(wasmImports);
+      let str = "var wasmImports = {\n";
+      str += keys.map(key => {
+        let fun = Object.keys(wasmImports[key]).map(name => {
+          return wasmImports[key][name];
+        }).join(",\n");
+        return "  " + key + ": {\n" + fun + "\n  }";
+      }).join(",");
+      str += "\n};"
+      return str;
+    }
+    return wasmImports;
   }
 
   compileToWasm(src: string, options: string, cb: (buffer: Uint8Array, annotations?: any[]) => void) {
@@ -258,6 +315,9 @@ export class AppComponent extends React.Component<void, {
   toggleCanvas() {
     this.setState({showCanvas: !this.state.showCanvas} as any);
   }
+  toggleSettings() {
+    this.setState({showSettings: !this.state.showSettings} as any);
+  }
   clear() {
     this.outputEditor.editor.setValue("");
   }
@@ -268,9 +328,14 @@ export class AppComponent extends React.Component<void, {
   render(): any {
     if (this.viewEditor) {
       if (this.state.view === "wast") {
+        this.viewEditor.editor.getSession().setMode("ace/mode/text");
         this.viewEditor.editor.setValue(this.wast, -1);
       } else if (this.state.view === "wasm") {
+        this.viewEditor.editor.getSession().setMode("ace/mode/javascript");
         this.viewEditor.editor.setValue("var wasmCode = new Uint8Array([" + String(this.wasmCode) + "]);", -1);
+      } else if (this.state.view == "imports") {
+        this.viewEditor.editor.getSession().setMode("ace/mode/javascript");
+        this.viewEditor.editor.setValue(this.createWasmImports(true), -1);
       }
     }
     return <div className="gAppContainer">
@@ -280,10 +345,23 @@ export class AppComponent extends React.Component<void, {
           <div className="canvasOverlay" style={{display: this.state.showCanvas ? "" : "none"}}>
             <div className="editorHeader">
               <div className="editorHeaderButtons">
-                <a title="Toggle Canvas" onClick={this.toggleCanvas.bind(this)}>{this.state.showCanvas ? "Hide" : "Show"} Canvas <i className="fa fa-picture-o fa-lg" aria-hidden="true"></i></a>
+                <a title="Toggle Canvas" onClick={this.toggleCanvas.bind(this)}>Hide <i className="fa fa-window-close fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
             <canvas className="outputCanvas" ref={(self: any) => this.canvas = self} width={1024} height={1024} />
+          </div>
+          <div className="settingsOverlay" style={{display: this.state.showSettings ? "" : "none"}}>
+            <div className="editorHeader">
+              <div className="editorHeaderButtons">
+                <a title="Toggle Settings" onClick={this.toggleSettings.bind(this)}>Hide <i className="fa fa-window-close fa-lg" aria-hidden="true"></i></a>
+              </div>
+            </div>
+            <div className="settingSectionHeader">
+              Compiler Options
+            </div>
+            <div className="settingSection">
+              <CompilerOptionsComponent options={this.state.compilerOptions} onChange={this.compilerOptionsChanged.bind(this)} />{' '}
+            </div>
           </div>
           <img src="img/web-assembly-icon-white-64px.png" className="waIcon" />
         </div>
@@ -291,8 +369,10 @@ export class AppComponent extends React.Component<void, {
           {window.location.origin + window.location.pathname + '?' + State.fiddleURI}
         </div>
         <div className="gShareButton">
-          <a title="Compile & Run: CTRL + Shift + Return" onClick={this.run.bind(this)}><i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-2x"} aria-hidden="true"></i></a>{' '}
-          <i title="Share" onClick={this.share.bind(this)} className="fa fa-cloud-upload fa-2x" aria-hidden="true"></i>
+          <a title="Build: CTRL + Shift + Return" onClick={this.build.bind(this)}><i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg"} aria-hidden="true"></i></a>{' '}
+          <a title="Run: CTRL + Return" onClick={this.runHarness.bind(this)}><i className="fa fa-play-circle fa-lg" aria-hidden="true"></i></a>{' '}
+          <a title="Toggle Settings" onClick={this.toggleSettings.bind(this)}><i className="fa fa-wrench fa-lg" aria-hidden="true"></i></a>{' '}
+          <i title="Share" onClick={this.share.bind(this)} className="fa fa-cloud-upload fa-lg" aria-hidden="true"></i>
         </div>
       </div>
       <div>
@@ -300,8 +380,8 @@ export class AppComponent extends React.Component<void, {
           <div>
             <div className="editorHeader"><span className="editorHeaderTitle">{this.state.isC ? "C" : "C++"}</span>
               <div className="editorHeaderButtons">
-                <CompilerOptionsComponent options={this.state.compilerOptions} onChange={this.compilerOptionsChanged.bind(this)} />{' '}
-                <a title="Compile & Run: CTRL + Shift + Return" onClick={this.run.bind(this)}>Compile & Run <i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg"} aria-hidden="true"></i></a>
+                <a title="Build: CTRL + Shift + Return" onClick={this.build.bind(this)}>Build <i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg"} aria-hidden="true"></i></a>{' '}
+                <a title="Run: CTRL + Return" onClick={this.runHarness.bind(this)}>Run <i className="fa fa-play-circle fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
             <EditorComponent ref={(self: any) => this.mainEditor = self} name="main" mode="ace/mode/c_cpp" showGutter={true} showLineNumbers={true} />
@@ -309,8 +389,7 @@ export class AppComponent extends React.Component<void, {
           <div>
             <div className="editorHeader"><span className="editorHeaderTitle">JS</span>
               <div className="editorHeaderButtons">
-                {/*<a title="Help" onClick={this.runHarness.bind(this)}>Help <i className="fa fa-book fa-lg" aria-hidden="true"></i></a>{' '}*/}
-                <a title="Run: CTRL + Return" onClick={this.runHarness.bind(this)}>Run <i className="fa fa-play-circle fa-lg" aria-hidden="true"></i></a>
+
               </div>
             </div>
             <EditorComponent ref={(self: any) => this.harnessEditor = self} name="harness" mode="ace/mode/javascript" showGutter={true} showLineNumbers={true} />
@@ -324,6 +403,7 @@ export class AppComponent extends React.Component<void, {
               <select title="Optimization Level" value={this.state.view} onChange={this.onViewChanged.bind(this)}>
                 <option value="wast">Text Format</option>
                 <option value="wasm">Code Buffer</option>
+                <option value="imports">Imports Template</option>
               </select>
               <div className="editorHeaderButtons">
                 {/*<a title="Assemble" onClick={this.assemble.bind(this)}>Assemble <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>*/}
@@ -336,7 +416,7 @@ export class AppComponent extends React.Component<void, {
           <div>
             <div className="editorHeader"><span className="editorHeaderTitle">Output</span>
               <div className="editorHeaderButtons">
-                <a title="Toggle Canvas" onClick={this.toggleCanvas.bind(this)}>{this.state.showCanvas ? "Hide" : "Show"} Canvas <i className="fa fa-picture-o fa-lg" aria-hidden="true"></i></a>{' '}
+                <a title="Toggle Canvas" onClick={this.toggleCanvas.bind(this)}>Canvas <i className="fa fa-picture-o fa-lg" aria-hidden="true"></i></a>{' '}
                 <a title="Clear Output" onClick={this.clear.bind(this)}>Clear Output <i className="fa fa-close fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>

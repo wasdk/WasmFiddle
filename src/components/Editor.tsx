@@ -61,7 +61,7 @@ export class EditorComponent extends React.Component<{
       },
       {
         bindKey: { win: "Ctrl-Shift-Return", mac: "Ctrl-Shift-Return" }, exec: function () {
-          State.app.run();
+          State.app.build();
         }
       },
       {
