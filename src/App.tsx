@@ -235,6 +235,9 @@ export class AppComponent extends React.Component<void, {
 
   createWasmImports(string: boolean): any {
     let wasmImports: any = {};
+    if (!WebAssembly.Module.imports) {
+      return wasmImports;
+    }
     WebAssembly.Module.imports(new WebAssembly.Module(this.wasmCode)).forEach((i: any) => {
       if (!wasmImports[i.module]) {
         wasmImports[i.module] = {};
