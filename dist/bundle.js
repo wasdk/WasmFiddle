@@ -40,15 +40,14 @@
 /******/ 	return __webpack_require__(0);
 /******/ })
 /************************************************************************/
-/******/ ({
-
-/***/ 0:
+/******/ ([
+/* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var React = __webpack_require__(1);
-	var ReactDOM = __webpack_require__(2);
-	var App_1 = __webpack_require__(3);
+	const React = __webpack_require__(1);
+	const ReactDOM = __webpack_require__(2);
+	const App_1 = __webpack_require__(3);
 	if (typeof WebAssembly === "object") {
 	    ReactDOM.render(React.createElement(App_1.AppComponent, null), document.getElementById("app"));
 	}
@@ -58,41 +57,111 @@
 
 
 /***/ },
-
-/***/ 1:
+/* 1 */
 /***/ function(module, exports) {
 
 	module.exports = React;
 
 /***/ },
-
-/***/ 2:
+/* 2 */
 /***/ function(module, exports) {
 
 	module.exports = ReactDOM;
 
 /***/ },
-
-/***/ 3:
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var React = __webpack_require__(1);
-	var State_1 = __webpack_require__(49);
-	var Editor_1 = __webpack_require__(51);
-	var CompilerOptions_1 = __webpack_require__(52);
-	var lib_1 = __webpack_require__(50);
-	var iframesandbox_1 = __webpack_require__(53);
-	var demangle = __webpack_require__(54).demangle;
-	var AppComponent = (function (_super) {
-	    __extends(AppComponent, _super);
-	    function AppComponent() {
-	        _super.call(this);
+	const React = __webpack_require__(1);
+	const State_1 = __webpack_require__(4);
+	const Editor_1 = __webpack_require__(5);
+	const CompilerOptions_1 = __webpack_require__(6);
+	const lib_1 = __webpack_require__(7);
+	const iframesandbox_1 = __webpack_require__(8);
+	let { demangle } = __webpack_require__(9);
+	function lazyLoad(s, cb) {
+	    var self = this;
+	    var d = window.document;
+	    var b = d.body;
+	    var e = d.createElement("script");
+	    e.async = true;
+	    e.src = s;
+	    b.appendChild(e);
+	    e.onload = function () {
+	        cb.call(this);
+	    };
+	}
+	function toAddress(n) {
+	    var s = n.toString(16);
+	    while (s.length < 6) {
+	        s = "0" + s;
+	    }
+	    return "0x" + s;
+	}
+	function padRight(s, n, c) {
+	    s = String(s);
+	    while (s.length < n) {
+	        s = s + c;
+	    }
+	    return s;
+	}
+	function padLeft(s, n, c) {
+	    s = String(s);
+	    while (s.length < n) {
+	        s = c + s;
+	    }
+	    return s;
+	}
+	var x86JumpInstructions = [
+	    "jmp", "ja", "jae", "jb", "jbe", "jc", "je", "jg", "jge", "jl", "jle", "jna", "jnae",
+	    "jnb", "jnbe", "jnc", "jne", "jng", "jnge", "jnl", "jnle", "jno", "jnp", "jns", "jnz",
+	    "jo", "jp", "jpe", "jpo", "js", "jz"
+	];
+	function isBranch(instr) {
+	    return x86JumpInstructions.indexOf(instr.mnemonic) >= 0;
+	}
+	var base64DecodeMap = [
+	    62, 0, 0, 0, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
+	    0, 0, 0, 0, 0, 0, 0,
+	    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+	    19, 20, 21, 22, 23, 24, 25, 0, 0, 0, 0, 0, 0,
+	    26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
+	    44, 45, 46, 47, 48, 49, 50, 51
+	];
+	var base64DecodeMapOffset = 0x2B;
+	var base64EOF = 0x3D;
+	function decodeRestrictedBase64ToBytes(encoded) {
+	    var ch;
+	    var code;
+	    var code2;
+	    var len = encoded.length;
+	    var padding = encoded.charAt(len - 2) === '=' ? 2 : encoded.charAt(len - 1) === '=' ? 1 : 0;
+	    var decoded = new Uint8Array((encoded.length >> 2) * 3 - padding);
+	    for (var i = 0, j = 0; i < encoded.length;) {
+	        ch = encoded.charCodeAt(i++);
+	        code = base64DecodeMap[ch - base64DecodeMapOffset];
+	        ch = encoded.charCodeAt(i++);
+	        code2 = base64DecodeMap[ch - base64DecodeMapOffset];
+	        decoded[j++] = (code << 2) | ((code2 & 0x30) >> 4);
+	        ch = encoded.charCodeAt(i++);
+	        if (ch == base64EOF) {
+	            return decoded;
+	        }
+	        code = base64DecodeMap[ch - base64DecodeMapOffset];
+	        decoded[j++] = ((code2 & 0x0f) << 4) | ((code & 0x3c) >> 2);
+	        ch = encoded.charCodeAt(i++);
+	        if (ch == base64EOF) {
+	            return decoded;
+	        }
+	        code2 = base64DecodeMap[ch - base64DecodeMapOffset];
+	        decoded[j++] = ((code & 0x03) << 6) | code2;
+	    }
+	    return decoded;
+	}
+	class AppComponent extends React.Component {
+	    constructor() {
+	        super();
 	        this.mainEditor = null;
 	        this.viewEditor = null;
 	        this.wasmEditor = null;
@@ -100,6 +169,7 @@
 	        this.harnessEditor = null;
 	        this.wasmCode = null;
 	        this.wast = "";
+	        this.wastAssembly = {};
 	        this.downloadLink = null;
 	        this.installKeyboardShortcuts();
 	        State_1.State.app = this;
@@ -112,33 +182,32 @@
 	            showSettings: false
 	        };
 	    }
-	    AppComponent.prototype.installKeyboardShortcuts = function () {
-	        var _this = this;
-	        Mousetrap.bind(['ctrl+shift+enter'], function (e) {
-	            _this.build();
+	    installKeyboardShortcuts() {
+	        Mousetrap.bind(['ctrl+shift+enter'], (e) => {
+	            this.build();
 	            e.preventDefault();
 	        });
-	        Mousetrap.bind(['ctrl+enter'], function (e) {
-	            _this.runHarness();
+	        Mousetrap.bind(['ctrl+enter'], (e) => {
+	            this.runHarness();
 	            e.preventDefault();
 	        });
-	        Mousetrap.bind(['command+s'], function (e) {
-	            _this.saveFiddleStateToURI();
+	        Mousetrap.bind(['command+s'], (e) => {
+	            this.saveFiddleStateToURI();
 	            e.preventDefault();
 	        });
-	    };
-	    AppComponent.prototype.componentDidMount = function () {
+	    }
+	    componentDidMount() {
 	        this.init();
-	    };
-	    AppComponent.prototype.compilerOptionsChanged = function (options) {
-	        var isC = options.indexOf("C++") < 0;
-	        this.setState({ compilerOptions: options, isC: isC });
-	    };
-	    AppComponent.prototype.onResize = function () {
+	    }
+	    compilerOptionsChanged(options) {
+	        let isC = options.indexOf("C++") < 0;
+	        this.setState({ compilerOptions: options, isC });
+	    }
+	    onResize() {
 	        // State.resize();
 	        this.mainEditor.editor.resize();
-	    };
-	    AppComponent.prototype.download = function (what) {
+	    }
+	    download(what) {
 	        var url = "";
 	        var name = "";
 	        if (what == "wasm") {
@@ -158,26 +227,26 @@
 	        if (this.downloadLink.href != document.location) {
 	            this.downloadLink.click();
 	        }
-	    };
-	    AppComponent.prototype.assemble = function () {
-	    };
-	    AppComponent.prototype.loadFiddledStateFromURI = function (fiddleURI) {
+	    }
+	    assemble() {
+	    }
+	    loadFiddledStateFromURI(fiddleURI) {
 	        State_1.State.fiddleURI = fiddleURI;
 	        var xhr = new XMLHttpRequest();
-	        var self = this;
+	        let self = this;
 	        xhr.addEventListener("load", function () {
 	            self.loadFiddledState(JSON.parse(this.response));
 	            history.replaceState({}, fiddleURI, '?' + State_1.State.fiddleURI);
 	        });
-	        var url = "https://api.myjson.com/bins/" + fiddleURI;
+	        let url = "https://api.myjson.com/bins/" + fiddleURI;
 	        xhr.open("GET", url, true);
 	        xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
 	        xhr.send();
-	    };
-	    AppComponent.prototype.saveFiddleStateToURI = function () {
+	    }
+	    saveFiddleStateToURI() {
 	        var xhr = new XMLHttpRequest();
 	        xhr.addEventListener("load", function () {
-	            var uri = JSON.parse(this.response).uri;
+	            let uri = JSON.parse(this.response).uri;
 	            uri = uri.substring(uri.lastIndexOf("/") + 1);
 	            State_1.State.fiddleURI = uri;
 	            State_1.State.app.forceUpdate();
@@ -186,11 +255,11 @@
 	        xhr.open("POST", "//api.myjson.com/bins", true);
 	        xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
 	        xhr.send(JSON.stringify(this.saveFiddleState()));
-	    };
-	    AppComponent.prototype.init = function () {
-	        var uri = window.location.search.substring(1);
+	    }
+	    init() {
+	        let uri = window.location.search.substring(1);
 	        if (uri) {
-	            var i = uri.indexOf("/");
+	            let i = uri.indexOf("/");
 	            if (i > 0) {
 	                uri = uri.substring(0, i);
 	            }
@@ -207,8 +276,8 @@
 	                }
 	            });
 	        }
-	    };
-	    AppComponent.prototype.saveFiddleState = function () {
+	    }
+	    saveFiddleState() {
 	        return {
 	            editors: {
 	                main: this.mainEditor.editor.getValue(),
@@ -216,8 +285,8 @@
 	            },
 	            compilerOptions: this.state.compilerOptions
 	        };
-	    };
-	    AppComponent.prototype.loadFiddledState = function (fiddleState) {
+	    }
+	    loadFiddledState(fiddleState) {
 	        // For backwards compatibility.
 	        if (fiddleState.editors["main.c"]) {
 	            fiddleState.editors.main = fiddleState.editors["main.c"];
@@ -228,91 +297,132 @@
 	        this.mainEditor.editor.setValue(fiddleState.editors.main, -1);
 	        this.harnessEditor.editor.setValue(fiddleState.editors.harness, -1);
 	        if (fiddleState.compilerOptions) {
-	            var isC = fiddleState.compilerOptions.indexOf("C++") < 0;
-	            this.setState({ compilerOptions: fiddleState.compilerOptions, isC: isC });
+	            let isC = fiddleState.compilerOptions.indexOf("C++") < 0;
+	            this.setState({ compilerOptions: fiddleState.compilerOptions, isC });
 	        }
-	    };
-	    AppComponent.prototype.build = function () {
-	        var _this = this;
-	        var main = this.mainEditor;
-	        var options = this.state.compilerOptions;
-	        this.compileToWasm(main.editor.getValue(), options, function (result, annotations) {
+	    }
+	    build() {
+	        let self = this;
+	        let main = this.mainEditor;
+	        let options = this.state.compilerOptions;
+	        this.compileToWasm(main.editor.getValue(), options, (result, wast, annotations) => {
 	            main.editor.getSession().clearAnnotations();
 	            if (annotations.length) {
 	                main.editor.getSession().setAnnotations(annotations);
-	                _this.appendOutput(String(result));
+	                this.appendOutput(String(result));
 	                return;
 	            }
-	            _this.wasmCode = result;
-	            _this.forceUpdate();
+	            self.wasmCode = result;
+	            self.wastAssembly = {};
+	            this.forceUpdate();
 	        });
-	    };
-	    AppComponent.prototype.runHarness = function () {
+	    }
+	    disassemble(json) {
+	        let self = this;
+	        if (typeof capstone === "undefined") {
+	            lazyLoad("lib/capstone.x86.min.js", go);
+	        }
+	        else {
+	            go();
+	        }
+	        function toBytes(a) {
+	            return a.map(function (x) { return padLeft(Number(x).toString(16), 2, "0"); }).join(" ");
+	        }
+	        function go() {
+	            let s = "";
+	            var cs = new capstone.Cs(capstone.ARCH_X86, capstone.MODE_64);
+	            var annotations = [];
+	            var assemblyInstructionsByAddress = Object.create(null);
+	            for (var i = 0; i < json.regions.length; i++) {
+	                var region = json.regions[i];
+	                s += region.name + ":\n";
+	                var csBuffer = decodeRestrictedBase64ToBytes(region.bytes);
+	                var instructions = cs.disasm(csBuffer, region.entry);
+	                var basicBlocks = {};
+	                instructions.forEach(function (instr, i) {
+	                    assemblyInstructionsByAddress[instr.address] = instr;
+	                    if (isBranch(instr)) {
+	                        var targetAddress = parseInt(instr.op_str);
+	                        if (!basicBlocks[targetAddress]) {
+	                            basicBlocks[targetAddress] = [];
+	                        }
+	                        basicBlocks[targetAddress].push(instr.address);
+	                        if (i + 1 < instructions.length) {
+	                            basicBlocks[instructions[i + 1].address] = [];
+	                        }
+	                    }
+	                });
+	                instructions.forEach(function (instr) {
+	                    if (basicBlocks[instr.address]) {
+	                        s += " " + padRight(toAddress(instr.address) + ":", 39, " ");
+	                        if (basicBlocks[instr.address].length > 0) {
+	                            s += "; " + toAddress(instr.address) + " from: [" + basicBlocks[instr.address].map(toAddress).join(", ") + "]";
+	                        }
+	                        s += "\n";
+	                    }
+	                    s += "  " + padRight(instr.mnemonic + " " + instr.op_str, 38, " ");
+	                    s += "; " + toAddress(instr.address) + " " + toBytes(instr.bytes) + "\n";
+	                });
+	                s += "\n";
+	            }
+	            self.viewEditor.editor.getSession().setValue(s, 1);
+	            self.viewEditor.editor.getSession().setMode("ace/mode/assembly_x86");
+	        }
+	    }
+	    runHarness() {
 	        State_1.State.sendAppEvent("run", "Harness");
 	        if (!this.wasmCode) {
 	            this.appendOutput("Build a WebAssembly module first.");
 	            return;
 	        }
 	        // |buffer| is needed for backward compatibility
-	        var self = this;
-	        var func = new iframesandbox_1.IFrameSandbox("wasmCode", "buffer", "wasmImports", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
+	        let self = this;
+	        let func = new iframesandbox_1.IFrameSandbox("wasmCode", "buffer", "wasmImports", "lib", "log", "canvas", this.harnessEditor.editor.getValue());
 	        if (self.func)
 	            self.func.destroy();
 	        self.func = func;
 	        lib_1.lib.log = function (x) {
 	            self.appendOutput(String(x));
 	        };
-	        lib_1.lib.showCanvas = function (x) {
-	            if (x === void 0) { x = true; }
+	        lib_1.lib.showCanvas = function (x = true) {
 	            self.setState({ showCanvas: x });
 	        };
-	        func.onerror = function (x) {
+	        func.onerror = (x) => {
 	            self.appendOutput(x);
 	            State_1.State.sendAppEvent("error", "Run Harness");
 	        };
 	        func.call(this.wasmCode, this.wasmCode, this.createWasmImports(false), lib_1.lib, lib_1.lib.log, State_1.State.app.canvas);
-	    };
-	    // createWasmImportsString() {
-	    //   var wasmModule = new WebAssembly.Module(this.wasmCode);
-	    //   let fun: string [] = [];
-	    //   WebAssembly.Module.imports(wasmModule).forEach((i: any) => {
-	    //     if (i.kind === "function" && i.module === "env") {
-	    //       let name = demangle("_" + i.name);
-	    //       let str = "";
-	    //       str += `  // ${name}\n`;
-	    //       str += "  " + i.name +  `: function ${i.name}() {\n  }`;
-	    //       fun.push(str);
-	    //     }
-	    //   });
-	    //   this.viewEditor.editor.setValue("var wasmEnvironment = {\n" + fun.join(",\n") + "\n};");
-	    // }
-	    AppComponent.prototype.createWasmImports = function (string) {
-	        var wasmImports = {};
-	        WebAssembly.Module.imports(new WebAssembly.Module(this.wasmCode)).forEach(function (i) {
+	    }
+	    createWasmImports(string) {
+	        let wasmImports = {};
+	        if (!this.wasmCode || !WebAssembly.Module.imports) {
+	            return wasmImports;
+	        }
+	        WebAssembly.Module.imports(new WebAssembly.Module(this.wasmCode)).forEach((i) => {
 	            if (!wasmImports[i.module]) {
 	                wasmImports[i.module] = {};
 	            }
 	            if (i.kind === "function") {
-	                var name_1 = demangle("_" + i.name);
+	                let name = demangle("_" + i.name);
 	                if (string) {
 	                    wasmImports[i.module][i.name] =
-	                        ("    // " + name_1 + "\n") +
-	                            ("    " + i.name + ": function " + i.name + " () {\n") +
-	                            "      // ...\n" +
-	                            "    }";
+	                        `    // ${name}\n` +
+	                            `    ${i.name}: function ${i.name} () {\n` +
+	                            `      // ...\n` +
+	                            `    }`;
 	                }
 	                else {
 	                    wasmImports[i.module][i.name] = function () {
-	                        lib_1.lib.log("NYI: " + i.name + " " + name_1);
+	                        lib_1.lib.log(`NYI: ${i.name} ${name}`);
 	                    };
 	                }
 	            }
 	        });
 	        if (string) {
-	            var keys = Object.keys(wasmImports);
-	            var str = "var wasmImports = {\n";
-	            str += keys.map(function (key) {
-	                var fun = Object.keys(wasmImports[key]).map(function (name) {
+	            let keys = Object.keys(wasmImports);
+	            let str = "var wasmImports = {\n";
+	            str += keys.map(key => {
+	                let fun = Object.keys(wasmImports[key]).map(name => {
 	                    return wasmImports[key][name];
 	                }).join(",\n");
 	                return "  " + key + ": {\n" + fun + "\n  }";
@@ -321,12 +431,12 @@
 	            return str;
 	        }
 	        return wasmImports;
-	    };
-	    AppComponent.prototype.compileToWasm = function (src, options, cb) {
+	    }
+	    compileToWasm(src, options, cb) {
 	        State_1.State.sendAppEvent("compile", "To Wasm");
-	        var self = this;
+	        let self = this;
 	        src = encodeURIComponent(src).replace('%20', '+');
-	        var action = this.state.isC ? "c2wast" : "cpp2wast";
+	        let action = this.state.isC ? "c2wast" : "cpp2wast";
 	        options = encodeURIComponent(options);
 	        self.setState({ isCompiling: true });
 	        State_1.State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
@@ -336,48 +446,47 @@
 	                State_1.State.sendAppEvent("error", "Compile to Wasm");
 	                return;
 	            }
-	            var annotations = State_1.State.getAnnotations(this.responseText);
+	            let annotations = State_1.State.getAnnotations(this.responseText);
 	            if (annotations.length) {
-	                cb(this.responseText, annotations);
+	                cb(this.responseText, null, annotations);
 	                State_1.State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
 	                return;
 	            }
 	            self.wast = this.responseText;
-	            src = encodeURIComponent(this.responseText).replace('%20', '+');
+	            let wast = encodeURIComponent(this.responseText).replace('%20', '+');
 	            self.setState({ isCompiling: true });
-	            State_1.State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
+	            State_1.State.sendRequest("input=" + wast + "&action=" + "wast2wasm" + "&options=" + options, function () {
 	                self.setState({ isCompiling: false });
 	                var buffer = atob(this.responseText.split('\n', 2)[1]);
 	                var data = new Uint8Array(buffer.length);
 	                for (var i = 0; i < buffer.length; i++) {
 	                    data[i] = buffer.charCodeAt(i);
 	                }
-	                cb(data, []);
+	                cb(data, self.wast, []);
 	            });
 	        });
-	    };
-	    AppComponent.prototype.appendOutput = function (s) {
+	    }
+	    appendOutput(s) {
 	        this.outputEditor.editor.insert(s + "\n");
 	        this.outputEditor.editor.gotoLine(Infinity);
-	    };
-	    AppComponent.prototype.share = function () {
+	    }
+	    share() {
 	        this.saveFiddleStateToURI();
 	        State_1.State.sendAppEvent("save", "Fiddle state to URI");
-	    };
-	    AppComponent.prototype.toggleCanvas = function () {
+	    }
+	    toggleCanvas() {
 	        this.setState({ showCanvas: !this.state.showCanvas });
-	    };
-	    AppComponent.prototype.toggleSettings = function () {
+	    }
+	    toggleSettings() {
 	        this.setState({ showSettings: !this.state.showSettings });
-	    };
-	    AppComponent.prototype.clear = function () {
+	    }
+	    clear() {
 	        this.outputEditor.editor.setValue("");
-	    };
-	    AppComponent.prototype.onViewChanged = function (e) {
+	    }
+	    onViewChanged(e) {
 	        this.setState({ view: e.target.value });
-	    };
-	    AppComponent.prototype.render = function () {
-	        var _this = this;
+	    }
+	    render() {
 	        if (this.viewEditor) {
 	            if (this.state.view === "wast") {
 	                this.viewEditor.editor.getSession().setMode("ace/mode/text");
@@ -391,9 +500,27 @@
 	                this.viewEditor.editor.getSession().setMode("ace/mode/javascript");
 	                this.viewEditor.editor.setValue(this.createWasmImports(true), -1);
 	            }
+	            else if (this.state.view.indexOf("x86") == 0) {
+	                this.viewEditor.editor.setValue("");
+	                if (this.wast) {
+	                    let type = this.state.view;
+	                    let self = this;
+	                    let options = type == "x86-baseline" ? "--wasm-always-baseline" : "";
+	                    if (this.wastAssembly[type]) {
+	                        self.disassemble(self.wastAssembly[type]);
+	                    }
+	                    else {
+	                        let wast = encodeURIComponent(this.wast).replace('%20', '+');
+	                        State_1.State.sendRequest("input=" + wast + "&action=wast2assembly&options=" + options, function () {
+	                            self.wastAssembly[type] = JSON.parse(this.responseText);
+	                            self.disassemble(self.wastAssembly[type]);
+	                        });
+	                    }
+	                }
+	            }
 	        }
 	        return React.createElement("div", {className: "gAppContainer"}, 
-	            React.createElement("a", {style: { display: "none" }, ref: function (self) { return _this.downloadLink = self; }}), 
+	            React.createElement("a", {style: { display: "none" }, ref: (self) => this.downloadLink = self}), 
 	            React.createElement("div", {className: "gHeader"}, 
 	                React.createElement("div", null, 
 	                    React.createElement("div", {className: "canvasOverlay", style: { display: this.state.showCanvas ? "" : "none" }}, 
@@ -404,7 +531,7 @@
 	                                    React.createElement("i", {className: "fa fa-window-close fa-lg", "aria-hidden": "true"}))
 	                            )
 	                        ), 
-	                        React.createElement("canvas", {className: "outputCanvas", ref: function (self) { return _this.canvas = self; }, width: 1024, height: 1024})), 
+	                        React.createElement("canvas", {className: "outputCanvas", ref: (self) => this.canvas = self, width: 1024, height: 1024})), 
 	                    React.createElement("div", {className: "settingsOverlay", style: { display: this.state.showSettings ? "" : "none" }}, 
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
@@ -446,12 +573,12 @@
 	                                React.createElement("a", {title: "Run: CTRL + Return", onClick: this.runHarness.bind(this)}, 
 	                                    "Run ", 
 	                                    React.createElement("i", {className: "fa fa-play-circle fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.mainEditor = self; }, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true})), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.mainEditor = self, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true})), 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("span", {className: "editorHeaderTitle"}, "JS"), 
 	                            React.createElement("div", {className: "editorHeaderButtons"})), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.harnessEditor = self; }, name: "harness", mode: "ace/mode/javascript", showGutter: true, showLineNumbers: true})))
+	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.harnessEditor = self, name: "harness", mode: "ace/mode/javascript", showGutter: true, showLineNumbers: true})))
 	            ), 
 	            React.createElement("div", null, 
 	                React.createElement("div", {className: "gV2"}, 
@@ -460,7 +587,9 @@
 	                            React.createElement("select", {title: "Optimization Level", value: this.state.view, onChange: this.onViewChanged.bind(this)}, 
 	                                React.createElement("option", {value: "wast"}, "Text Format"), 
 	                                React.createElement("option", {value: "wasm"}, "Code Buffer"), 
-	                                React.createElement("option", {value: "imports"}, "Imports Template")), 
+	                                React.createElement("option", {value: "imports"}, "Imports Template"), 
+	                                React.createElement("option", {value: "x86"}, "Firefox x86"), 
+	                                React.createElement("option", {value: "x86-baseline"}, "Firefox x86 Baseline")), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
 	                                "Download ", 
 	                                React.createElement("a", {title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
@@ -470,7 +599,7 @@
 	                                React.createElement("a", {title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
 	                                    "Wasm ", 
 	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.viewEditor = self; }, name: "view", save: false, readOnly: true, fontSize: 10})), 
+	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.viewEditor = self, name: "view", save: false, readOnly: true, fontSize: 10})), 
 	                    React.createElement("div", null, 
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("span", {className: "editorHeaderTitle"}, "Output"), 
@@ -482,34 +611,30 @@
 	                                React.createElement("a", {title: "Clear Output", onClick: this.clear.bind(this)}, 
 	                                    "Clear Output ", 
 	                                    React.createElement("i", {className: "fa fa-close fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: function (self) { return _this.outputEditor = self; }, name: "output", save: false, readOnly: true})))
+	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.outputEditor = self, name: "output", save: false, readOnly: true})))
 	            ));
-	    };
-	    return AppComponent;
-	}(React.Component));
+	    }
+	}
 	exports.AppComponent = AppComponent;
 
 
 /***/ },
-
-/***/ 49:
+/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
-	var State = (function () {
-	    function State() {
-	    }
-	    State.sendServiceEvent = function (label) {
+	class State {
+	    static sendServiceEvent(label) {
 	        var evt = document.createEvent('CustomEvent');
 	        evt.initCustomEvent('serviceevent', false, false, { 'category': 'Service', 'action': 'send', 'label': label });
 	        window.dispatchEvent(evt);
-	    };
-	    State.sendAppEvent = function (action, label) {
+	    }
+	    static sendAppEvent(action, label) {
 	        var evt = document.createEvent('CustomEvent');
 	        evt.initCustomEvent('serviceevent', false, false, { 'category': 'App', 'action': action, 'label': label });
 	        window.dispatchEvent(evt);
-	    };
-	    State.sendRequest = function (command, cb) {
+	    }
+	    static sendRequest(command, cb) {
 	        var self = this;
 	        var xhr = new XMLHttpRequest();
 	        xhr.addEventListener("load", function () {
@@ -518,8 +643,8 @@
 	        xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
 	        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	        xhr.send(command);
-	    };
-	    State.getAnnotations = function (response) {
+	    }
+	    static getAnnotations(response) {
 	        // Parse and annotate errors if compilation fails.
 	        var annotations = [];
 	        if (response.indexOf("(module") !== 0) {
@@ -541,16 +666,148 @@
 	            }
 	        }
 	        return annotations;
-	    };
-	    State.fiddleURI = "";
-	    return State;
-	}());
+	    }
+	}
+	State.fiddleURI = "";
 	exports.State = State;
 
 
 /***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
 
-/***/ 50:
+	"use strict";
+	const React = __webpack_require__(1);
+	const State_1 = __webpack_require__(4);
+	class EditorComponent extends React.Component {
+	    componentDidMount() {
+	        let editor = this.editor = ace.edit(this.container);
+	        var theme = true ? "ace/theme/monokai" : "ace/theme/github";
+	        // editor.setValue(this.props.source, -1);
+	        editor.setReadOnly(this.props.readOnly);
+	        editor.setTheme(theme);
+	        editor.setFontSize(this.props.fontSize);
+	        editor.getSession().setUseSoftTabs(true);
+	        editor.getSession().setTabSize(2);
+	        editor.setShowPrintMargin(false);
+	        editor.setOptions({
+	            wrap: true,
+	            enableBasicAutocompletion: true,
+	            // enableSnippets: true,
+	            // enableLiveAutocompletion: true,
+	            showLineNumbers: this.props.showLineNumbers,
+	            showGutter: this.props.showGutter
+	        });
+	        editor.$blockScrolling = Infinity;
+	        editor.renderer.setScrollMargin(10, 10);
+	        editor.getSession().setMode(this.props.mode);
+	        let action = this.props.action;
+	        let self = this;
+	        editor.commands.addCommands([{
+	                bindKey: { win: "Ctrl-S", mac: "Command-S" }, exec: function () {
+	                    State_1.State.app.share();
+	                }
+	            },
+	            {
+	                bindKey: { win: "Ctrl-Shift-Return", mac: "Ctrl-Shift-Return" }, exec: function () {
+	                    State_1.State.app.build();
+	                }
+	            },
+	            {
+	                bindKey: { win: "Ctrl-Return", mac: "Ctrl-Return" }, exec: function () {
+	                    State_1.State.app.runHarness();
+	                }
+	            }
+	        ]);
+	    }
+	    onChange() {
+	    }
+	    render() {
+	        return React.createElement("div", {style: this.props.style, ref: (self) => this.container = self, className: "editorBody"});
+	    }
+	}
+	EditorComponent.defaultProps = {
+	    // source: "",
+	    mode: "",
+	    action: "",
+	    save: true,
+	    readOnly: false,
+	    showGutter: false,
+	    showLineNumbers: false,
+	    fontSize: 11,
+	    style: null
+	};
+	exports.EditorComponent = EditorComponent;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const React = __webpack_require__(1);
+	class CompilerOptionsComponent extends React.Component {
+	    constructor() {
+	        super();
+	        this.dialects = ["-std=C89", "-std=C99", "-std=C++98", "-std=C++11", "-std=C++14", "-std=C++1z"];
+	        this.optimizationLevels = ["-O0", "-O1", "-O2", "-O3", "-O4", "-Os"];
+	        this.state = {
+	            dialect: "-std=C99",
+	            optimizationLevel: "-O3"
+	        };
+	    }
+	    componentDidMount() {
+	        if (this.props.options) {
+	            this.loadState(this.props.options);
+	        }
+	    }
+	    componentWillReceiveProps(props) {
+	        if (props.options) {
+	            this.loadState(props.options);
+	        }
+	    }
+	    optimizationLevelChanged(e) {
+	        this.setState({ optimizationLevel: e.target.value }, () => {
+	            this.onChange();
+	        });
+	    }
+	    dialectChanged(e) {
+	        this.setState({ dialect: e.target.value }, () => {
+	            this.onChange();
+	        });
+	    }
+	    loadState(options) {
+	        let s = {};
+	        options.split(" ").forEach(o => {
+	            if (o.indexOf("-O") == 0) {
+	                s.optimizationLevel = o;
+	            }
+	            else if (o.indexOf("-std=") == 0) {
+	                s.dialect = o;
+	            }
+	        });
+	        this.setState(s);
+	    }
+	    saveState() {
+	        return [this.state.optimizationLevel, this.state.dialect].join(" ");
+	    }
+	    onChange() {
+	        if (this.props.onChange) {
+	            this.props.onChange(this.saveState());
+	        }
+	    }
+	    render() {
+	        return React.createElement("span", null, 
+	            React.createElement("select", {title: "Optimization Level", value: this.state.optimizationLevel, onChange: this.optimizationLevelChanged.bind(this)}, this.optimizationLevels.map(x => React.createElement("option", {key: x}, x))), 
+	            ' ', 
+	            React.createElement("select", {title: "Dialect", value: this.state.dialect, onChange: this.dialectChanged.bind(this)}, this.dialects.map(x => React.createElement("option", {key: x}, x))));
+	    }
+	}
+	exports.CompilerOptionsComponent = CompilerOptionsComponent;
+
+
+/***/ },
+/* 7 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -612,7 +869,7 @@
 	    new Int32Array(buffer)[1] = ptr;
 	}
 	function dumpMemory(memory, ptr, len) {
-	    var m = new Uint8Array(memory.buffer || memory);
+	    let m = new Uint8Array(memory.buffer || memory);
 	    function padAddress(s) {
 	        while (s.length < 8)
 	            s = "0" + s;
@@ -629,15 +886,15 @@
 	        }
 	        return String.fromCharCode(i);
 	    }
-	    var str = "";
-	    for (var i = ptr; i < len; i += 16) {
+	    let str = "";
+	    for (let i = ptr; i < len; i += 16) {
 	        str += padAddress(i.toString(16).toUpperCase());
 	        str += " ";
-	        for (var j = i; j < i + 16; j++) {
+	        for (let j = i; j < i + 16; j++) {
 	            str += padByte(m[j].toString(16).toUpperCase());
 	        }
 	        str += " ";
-	        for (var j = i; j < i + 16; j++) {
+	        for (let j = i; j < i + 16; j++) {
 	            str += ascii(m[j]);
 	        }
 	        str += "\n";
@@ -654,199 +911,43 @@
 
 
 /***/ },
-
-/***/ 51:
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var React = __webpack_require__(1);
-	var State_1 = __webpack_require__(49);
-	var EditorComponent = (function (_super) {
-	    __extends(EditorComponent, _super);
-	    function EditorComponent() {
-	        _super.apply(this, arguments);
-	    }
-	    EditorComponent.prototype.componentDidMount = function () {
-	        var editor = this.editor = ace.edit(this.container);
-	        var theme = true ? "ace/theme/monokai" : "ace/theme/github";
-	        // editor.setValue(this.props.source, -1);
-	        editor.setReadOnly(this.props.readOnly);
-	        editor.setTheme(theme);
-	        editor.setFontSize(this.props.fontSize);
-	        editor.getSession().setUseSoftTabs(true);
-	        editor.getSession().setTabSize(2);
-	        editor.setShowPrintMargin(false);
-	        editor.setOptions({
-	            wrap: true,
-	            enableBasicAutocompletion: true,
-	            // enableSnippets: true,
-	            // enableLiveAutocompletion: true,
-	            showLineNumbers: this.props.showLineNumbers,
-	            showGutter: this.props.showGutter
-	        });
-	        editor.$blockScrolling = Infinity;
-	        editor.renderer.setScrollMargin(10, 10);
-	        editor.getSession().setMode(this.props.mode);
-	        var action = this.props.action;
-	        var self = this;
-	        editor.commands.addCommands([{
-	                bindKey: { win: "Ctrl-S", mac: "Command-S" }, exec: function () {
-	                    State_1.State.app.share();
-	                }
-	            },
-	            {
-	                bindKey: { win: "Ctrl-Shift-Return", mac: "Ctrl-Shift-Return" }, exec: function () {
-	                    State_1.State.app.build();
-	                }
-	            },
-	            {
-	                bindKey: { win: "Ctrl-Return", mac: "Ctrl-Return" }, exec: function () {
-	                    State_1.State.app.runHarness();
-	                }
-	            }
-	        ]);
-	    };
-	    EditorComponent.prototype.onChange = function () {
-	    };
-	    EditorComponent.prototype.render = function () {
-	        var _this = this;
-	        return React.createElement("div", {style: this.props.style, ref: function (self) { return _this.container = self; }, className: "editorBody"});
-	    };
-	    EditorComponent.defaultProps = {
-	        // source: "",
-	        mode: "",
-	        action: "",
-	        save: true,
-	        readOnly: false,
-	        showGutter: false,
-	        showLineNumbers: false,
-	        fontSize: 11,
-	        style: null
-	    };
-	    return EditorComponent;
-	}(React.Component));
-	exports.EditorComponent = EditorComponent;
-
-
-/***/ },
-
-/***/ 52:
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var React = __webpack_require__(1);
-	var CompilerOptionsComponent = (function (_super) {
-	    __extends(CompilerOptionsComponent, _super);
-	    function CompilerOptionsComponent() {
-	        _super.call(this);
-	        this.dialects = ["-std=C89", "-std=C99", "-std=C++98", "-std=C++11", "-std=C++14", "-std=C++1z"];
-	        this.optimizationLevels = ["-O0", "-O1", "-O2", "-O3", "-O4", "-Os"];
-	        this.state = {
-	            dialect: "-std=C99",
-	            optimizationLevel: "-O3"
-	        };
-	    }
-	    CompilerOptionsComponent.prototype.componentDidMount = function () {
-	        if (this.props.options) {
-	            this.loadState(this.props.options);
-	        }
-	    };
-	    CompilerOptionsComponent.prototype.componentWillReceiveProps = function (props) {
-	        if (props.options) {
-	            this.loadState(props.options);
-	        }
-	    };
-	    CompilerOptionsComponent.prototype.optimizationLevelChanged = function (e) {
-	        var _this = this;
-	        this.setState({ optimizationLevel: e.target.value }, function () {
-	            _this.onChange();
-	        });
-	    };
-	    CompilerOptionsComponent.prototype.dialectChanged = function (e) {
-	        var _this = this;
-	        this.setState({ dialect: e.target.value }, function () {
-	            _this.onChange();
-	        });
-	    };
-	    CompilerOptionsComponent.prototype.loadState = function (options) {
-	        var s = {};
-	        options.split(" ").forEach(function (o) {
-	            if (o.indexOf("-O") == 0) {
-	                s.optimizationLevel = o;
-	            }
-	            else if (o.indexOf("-std=") == 0) {
-	                s.dialect = o;
-	            }
-	        });
-	        this.setState(s);
-	    };
-	    CompilerOptionsComponent.prototype.saveState = function () {
-	        return [this.state.optimizationLevel, this.state.dialect].join(" ");
-	    };
-	    CompilerOptionsComponent.prototype.onChange = function () {
-	        if (this.props.onChange) {
-	            this.props.onChange(this.saveState());
-	        }
-	    };
-	    CompilerOptionsComponent.prototype.render = function () {
-	        return React.createElement("span", null, 
-	            React.createElement("select", {title: "Optimization Level", value: this.state.optimizationLevel, onChange: this.optimizationLevelChanged.bind(this)}, this.optimizationLevels.map(function (x) { return React.createElement("option", {key: x}, x); })), 
-	            ' ', 
-	            React.createElement("select", {title: "Dialect", value: this.state.dialect, onChange: this.dialectChanged.bind(this)}, this.dialects.map(function (x) { return React.createElement("option", {key: x}, x); })));
-	    };
-	    return CompilerOptionsComponent;
-	}(React.Component));
-	exports.CompilerOptionsComponent = CompilerOptionsComponent;
-
-
-/***/ },
-
-/***/ 53:
+/* 8 */
 /***/ function(module, exports) {
 
 	"use strict";
-	var IFrameSandbox = (function () {
-	    function IFrameSandbox() {
-	        var _this = this;
-	        var args = [];
-	        for (var _i = 0; _i < arguments.length; _i++) {
-	            args[_i - 0] = arguments[_i];
-	        }
+	class IFrameSandbox {
+	    constructor(...args) {
 	        var body = args.pop();
 	        var iframe = document.createElement('iframe');
 	        iframe.className = 'hidden';
-	        var BodyAtLine = 6;
-	        iframe.src = URL.createObjectURL(new Blob([("<!DOCTYPE html>\n  <html>\n  <head><meta charset='utf-8'></head>\n  <body>\n    <script>\n  function run() {\n  " + body + "\n  }\n  frameElement.onready();\n    </script>\n  </body></html>")], { type: 'text/html' }));
+	        const BodyAtLine = 6;
+	        iframe.src = URL.createObjectURL(new Blob([`<!DOCTYPE html>
+	  <html>
+	  <head><meta charset='utf-8'></head>
+	  <body>
+	    <script>
+	  function run() {
+	  ${body}
+	  }
+	  frameElement.onready();
+	    </script>
+	  </body></html>`], { type: 'text/html' }));
 	        document.body.appendChild(iframe);
 	        this._iframe = iframe;
-	        var onerror = function (e, url, line) {
+	        var onerror = (e, url, line) => {
 	            if (line)
-	                _this.onerror("line " + (line - BodyAtLine) + ": " + e);
+	                this.onerror(`line ${line - BodyAtLine}: ${e}`);
 	            else
-	                _this.onerror(e);
+	                this.onerror(e);
 	        };
-	        var ready = new Promise(function (resolve) {
+	        var ready = new Promise((resolve) => {
 	            var iframe_ = iframe;
-	            iframe_.onready = function () {
+	            iframe_.onready = () => {
 	                resolve(iframe.contentWindow);
 	            };
 	        });
-	        this.call = function () {
-	            var values = [];
-	            for (var _i = 0; _i < arguments.length; _i++) {
-	                values[_i - 0] = arguments[_i];
-	            }
-	            ready.then(function (w) {
+	        this.call = function (...values) {
+	            ready.then((w) => {
 	                w.onerror = onerror;
 	                for (var i = 0; i < values.length; i++)
 	                    w[args[i]] = values[i];
@@ -854,25 +955,22 @@
 	            });
 	        };
 	    }
-	    IFrameSandbox.prototype.destroy = function () {
+	    destroy() {
 	        this._iframe.remove();
-	    };
-	    return IFrameSandbox;
-	}());
+	    }
+	}
 	exports.IFrameSandbox = IFrameSandbox;
 
 
 /***/ },
-
-/***/ 54:
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.demangle = __webpack_require__(55);
+	exports.demangle = __webpack_require__(10);
 
 
 /***/ },
-
-/***/ 55:
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;/* WEBPACK VAR INJECTION */(function(process, __dirname, module) {/**
@@ -940,11 +1038,10 @@
 	  module.exports = demangle;
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(56), "/", __webpack_require__(57)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11), "/", __webpack_require__(12)(module)))
 
 /***/ },
-
-/***/ 56:
+/* 11 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -1130,8 +1227,7 @@
 
 
 /***/ },
-
-/***/ 57:
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -1147,6 +1243,5 @@
 
 
 /***/ }
-
-/******/ });
+/******/ ]);
 //# sourceMappingURL=bundle.js.map
