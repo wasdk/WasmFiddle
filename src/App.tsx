@@ -9,9 +9,102 @@ import { IFrameSandbox } from "./iframesandbox";
 declare var require: any;
 declare var WebAssembly: any;
 let { demangle } = require("demangle");
+declare var capstone: any;
 
 declare var Mousetrap: any;
 declare var Promise: any;
+
+function lazyLoad(s: string, cb: () => void) {
+  var self = this;
+  var d = window.document;
+  var b = d.body;
+  var e = d.createElement("script");
+  e.async = true;
+  e.src = s;
+  b.appendChild(e);
+  e.onload = function () {
+    cb.call(this);
+  }
+}
+
+function toAddress(n: number) {
+  var s = n.toString(16);
+  while (s.length < 6) {
+    s = "0" + s;
+  }
+  return "0x" + s;
+}
+
+function padRight(s: string, n: number, c: string) {
+  s = String(s);
+  while (s.length < n) {
+    s = s + c;
+  }
+  return s;
+}
+
+function padLeft(s: string, n: number, c: string) {
+  s = String(s);
+  while (s.length < n) {
+    s = c + s;
+  }
+  return s;
+}
+
+var x86JumpInstructions = [
+  "jmp", "ja", "jae", "jb", "jbe", "jc", "je", "jg", "jge", "jl", "jle", "jna", "jnae",
+  "jnb", "jnbe", "jnc", "jne", "jng", "jnge", "jnl", "jnle", "jno", "jnp", "jns", "jnz",
+  "jo", "jp", "jpe", "jpo", "js", "jz"
+];
+
+function isBranch(instr: any) {
+  return x86JumpInstructions.indexOf(instr.mnemonic) >= 0;
+}
+
+var base64DecodeMap = [ // starts at 0x2B
+  62, 0, 0, 0, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
+  0, 0, 0, 0, 0, 0, 0, // 0x3A-0x40
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+  19, 20, 21, 22, 23, 24, 25, 0, 0, 0, 0, 0, 0, // 0x5B-0x0x60
+  26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
+  44, 45, 46, 47, 48, 49, 50, 51
+];
+
+var base64DecodeMapOffset = 0x2B;
+var base64EOF = 0x3D;
+
+function decodeRestrictedBase64ToBytes(encoded: any) {
+  var ch: any;
+  var code: any;
+  var code2: any;
+
+  var len = encoded.length;
+  var padding = encoded.charAt(len - 2) === '=' ? 2 : encoded.charAt(len - 1) === '=' ? 1 : 0;
+  var decoded = new Uint8Array((encoded.length >> 2) * 3 - padding);
+
+  for (var i = 0, j = 0; i < encoded.length;) {
+    ch = encoded.charCodeAt(i++);
+    code = base64DecodeMap[ch - base64DecodeMapOffset];
+    ch = encoded.charCodeAt(i++);
+    code2 = base64DecodeMap[ch - base64DecodeMapOffset];
+    decoded[j++] = (code << 2) | ((code2 & 0x30) >> 4);
+
+    ch = encoded.charCodeAt(i++);
+    if (ch == base64EOF) {
+      return decoded;
+    }
+    code = base64DecodeMap[ch - base64DecodeMapOffset];
+    decoded[j++] = ((code2 & 0x0f) << 4) | ((code & 0x3c) >> 2);
+
+    ch = encoded.charCodeAt(i++);
+    if (ch == base64EOF) {
+      return decoded;
+    }
+    code2 = base64DecodeMap[ch - base64DecodeMapOffset];
+    decoded[j++] = ((code & 0x03) << 6) | code2;
+  }
+  return decoded;
+}
 
 export class AppComponent extends React.Component<void, {
   compilerOptions: string,
@@ -177,19 +270,74 @@ export class AppComponent extends React.Component<void, {
   wasmCode: Uint8Array = null;
 
   wast: string = "";
+  wastAssembly: any = {};
+
   build() {
+    let self = this;
     let main = this.mainEditor;
     let options = this.state.compilerOptions;
-    this.compileToWasm(main.editor.getValue(), options, (result: Uint8Array | string, annotations: any[]) => {
+    this.compileToWasm(main.editor.getValue(), options, (result: Uint8Array | string, wast: string, annotations: any[]) => {
       main.editor.getSession().clearAnnotations();
       if (annotations.length) {
         main.editor.getSession().setAnnotations(annotations);
         this.appendOutput(String(result));
         return;
       }
-      this.wasmCode = result as Uint8Array;
+      self.wasmCode = result as Uint8Array;
+      self.wastAssembly = {};
       this.forceUpdate();
     });
+  }
+  disassemble(json: any) {
+    let self = this;
+    if (typeof capstone === "undefined") {
+      lazyLoad("lib/capstone.x86.min.js", go);
+    } else {
+      go();
+    }
+    function toBytes(a: any) {
+      return a.map(function (x: any) { return padLeft(Number(x).toString(16), 2, "0"); }).join(" ");
+    }
+    function go() {
+      let s = "";
+      var cs = new capstone.Cs(capstone.ARCH_X86, capstone.MODE_64);
+      var annotations: any [] = [];
+      var assemblyInstructionsByAddress = Object.create(null);
+      for (var i = 0; i < json.regions.length; i++) {
+        var region = json.regions[i];
+        s += region.name + ":\n";
+        var csBuffer = decodeRestrictedBase64ToBytes(region.bytes);
+        var instructions = cs.disasm(csBuffer, region.entry);
+        var basicBlocks: any = {};
+        instructions.forEach(function(instr: any, i: any) {
+          assemblyInstructionsByAddress[instr.address] = instr;
+          if (isBranch(instr)) {
+            var targetAddress = parseInt(instr.op_str);
+            if (!basicBlocks[targetAddress]) {
+              basicBlocks[targetAddress] = [];
+            }
+            basicBlocks[targetAddress].push(instr.address);
+            if (i + 1 < instructions.length) {
+              basicBlocks[instructions[i + 1].address] = [];
+            }
+          }
+        });
+        instructions.forEach(function(instr: any) {
+          if (basicBlocks[instr.address]) {
+            s += " " + padRight(toAddress(instr.address) + ":", 39, " ");
+            if (basicBlocks[instr.address].length > 0) {
+              s += "; " + toAddress(instr.address) + " from: [" + basicBlocks[instr.address].map(toAddress).join(", ") + "]";
+            }
+            s += "\n";
+          }
+          s += "  " + padRight(instr.mnemonic + " " + instr.op_str, 38, " ");
+          s += "; " + toAddress(instr.address) + " " + toBytes(instr.bytes) + "\n";
+        });
+        s += "\n";
+      }
+      self.viewEditor.editor.getSession().setValue(s, 1);
+      self.viewEditor.editor.getSession().setMode("ace/mode/assembly_x86");
+    }
   }
   runHarness() {
     State.sendAppEvent("run", "Harness");
@@ -218,24 +366,9 @@ export class AppComponent extends React.Component<void, {
     func.call(this.wasmCode, this.wasmCode, this.createWasmImports(false), lib, lib.log, State.app.canvas);
   }
 
-  // createWasmImportsString() {
-  //   var wasmModule = new WebAssembly.Module(this.wasmCode);
-  //   let fun: string [] = [];
-  //   WebAssembly.Module.imports(wasmModule).forEach((i: any) => {
-  //     if (i.kind === "function" && i.module === "env") {
-  //       let name = demangle("_" + i.name);
-  //       let str = "";
-  //       str += `  // ${name}\n`;
-  //       str += "  " + i.name +  `: function ${i.name}() {\n  }`;
-  //       fun.push(str);
-  //     }
-  //   });
-  //   this.viewEditor.editor.setValue("var wasmEnvironment = {\n" + fun.join(",\n") + "\n};");
-  // }
-
   createWasmImports(string: boolean): any {
     let wasmImports: any = {};
-    if (!WebAssembly.Module.imports) {
+    if (!this.wasmCode || !WebAssembly.Module.imports) {
       return wasmImports;
     }
     WebAssembly.Module.imports(new WebAssembly.Module(this.wasmCode)).forEach((i: any) => {
@@ -272,7 +405,7 @@ export class AppComponent extends React.Component<void, {
     return wasmImports;
   }
 
-  compileToWasm(src: string, options: string, cb: (buffer: Uint8Array, annotations?: any[]) => void) {
+  compileToWasm(src: string, options: string, cb: (buffer: Uint8Array, wast: string, annotations?: any[]) => void) {
     State.sendAppEvent("compile", "To Wasm");
     let self = this;
     src = encodeURIComponent(src).replace('%20', '+');
@@ -288,21 +421,21 @@ export class AppComponent extends React.Component<void, {
       }
       let annotations = State.getAnnotations(this.responseText);
       if (annotations.length) {
-        cb(this.responseText, annotations);
+        cb(this.responseText, null, annotations);
         State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
         return;
       }
       self.wast = this.responseText;
-      src = encodeURIComponent(this.responseText).replace('%20', '+');
+      let wast = encodeURIComponent(this.responseText).replace('%20', '+');
       self.setState({ isCompiling: true } as any);
-      State.sendRequest("input=" + src + "&action=" + "wast2wasm" + "&options=" + options, function () {
+      State.sendRequest("input=" + wast + "&action=" + "wast2wasm" + "&options=" + options, function () {
         self.setState({ isCompiling: false } as any);
         var buffer = atob(this.responseText.split('\n', 2)[1]);
         var data = new Uint8Array(buffer.length);
         for (var i = 0; i < buffer.length; i++) {
           data[i] = buffer.charCodeAt(i);
         }
-        cb(data, []);
+        cb(data, self.wast, []);
       });
     });
   }
@@ -339,6 +472,22 @@ export class AppComponent extends React.Component<void, {
       } else if (this.state.view == "imports") {
         this.viewEditor.editor.getSession().setMode("ace/mode/javascript");
         this.viewEditor.editor.setValue(this.createWasmImports(true), -1);
+      } else if (this.state.view.indexOf("x86") == 0) {
+        this.viewEditor.editor.setValue("");
+        if (this.wast) {
+          let type = this.state.view;
+          let self = this;
+          let options = type == "x86-baseline" ? "--wasm-always-baseline" : "";
+          if (this.wastAssembly[type]) {
+            self.disassemble(self.wastAssembly[type]);
+          } else {
+            let wast = encodeURIComponent(this.wast).replace('%20', '+');
+            State.sendRequest("input=" + wast + "&action=wast2assembly&options=" + options, function () {
+              self.wastAssembly[type] = JSON.parse(this.responseText);
+              self.disassemble(self.wastAssembly[type]);
+            });
+          }
+        }
       }
     }
     return <div className="gAppContainer">
@@ -407,6 +556,8 @@ export class AppComponent extends React.Component<void, {
                 <option value="wast">Text Format</option>
                 <option value="wasm">Code Buffer</option>
                 <option value="imports">Imports Template</option>
+                <option value="x86">Firefox x86</option>
+                <option value="x86-baseline">Firefox x86 Baseline</option>
               </select>
               <div className="editorHeaderButtons">
                 {/*<a title="Assemble" onClick={this.assemble.bind(this)}>Assemble <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>*/}
