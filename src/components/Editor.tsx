@@ -27,7 +27,7 @@ export class EditorComponent extends React.Component<{
     readOnly: false,
     showGutter: false,
     showLineNumbers: false,
-    fontSize: 11,
+    fontSize: 12,
     style: null as any
   };
   componentDidMount() {
@@ -62,6 +62,11 @@ export class EditorComponent extends React.Component<{
       {
         bindKey: { win: "Ctrl-Shift-Return", mac: "Ctrl-Shift-Return" }, exec: function () {
           State.app.build();
+        }
+      },
+      {
+        bindKey: { win: "Ctrl-Shift-K", mac: "Ctrl-Shift-K" }, exec: function () {
+          State.app.clear();
         }
       },
       {

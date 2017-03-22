@@ -10,10 +10,8 @@ declare var require: any;
 declare var WebAssembly: any;
 let { demangle } = require("demangle");
 declare var capstone: any;
-
 declare var Mousetrap: any;
 declare var Promise: any;
-
 function lazyLoad(s: string, cb: () => void) {
   var self = this;
   var d = window.document;
@@ -106,6 +104,11 @@ function decodeRestrictedBase64ToBytes(encoded: any) {
   return decoded;
 }
 
+const defaultHarnessText =
+  `var wasmModule = new WebAssembly.Module(wasmCode);\n` +
+  `var wasmInstance = new WebAssembly.Instance(wasmModule, wasmImports);\n` +
+  `log(wasmInstance.exports.main());\n`;
+
 export class AppComponent extends React.Component<void, {
   compilerOptions: string,
   isCompiling: boolean;
@@ -135,6 +138,10 @@ export class AppComponent extends React.Component<void, {
   installKeyboardShortcuts() {
     Mousetrap.bind(['ctrl+shift+enter'], (e: any) => {
       this.build();
+      e.preventDefault();
+    });
+    Mousetrap.bind(['ctrl+shift+k'], (e: any) => {
+      this.clear();
       e.preventDefault();
     });
     Mousetrap.bind(['ctrl+enter'], (e: any) => {
@@ -226,10 +233,7 @@ export class AppComponent extends React.Component<void, {
       this.loadFiddledState({
         editors: {
           "main": "int main() { \n  return 42;\n}",
-          "harness":
-          "var wasmModule = new WebAssembly.Module(wasmCode);\n" +
-          "var wasmInstance = new WebAssembly.Instance(wasmModule);\n\n" +
-          "log(wasmInstance.exports.main());"
+          "harness": defaultHarnessText
         }
       });
     }
@@ -522,7 +526,7 @@ export class AppComponent extends React.Component<void, {
         </div>
         <div className="gShareButton">
           <a title="Build: CTRL + Shift + Return" onClick={this.build.bind(this)}><i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg"} aria-hidden="true"></i></a>{' '}
-          <a title="Run: CTRL + Return" onClick={this.runHarness.bind(this)}><i className="fa fa-play-circle fa-lg" aria-hidden="true"></i></a>{' '}
+          <a className={this.wasmCode ? "" : "disabled-link"} title="Run: CTRL + Return" onClick={this.runHarness.bind(this)}><i className="fa fa-play-circle fa-lg" aria-hidden="true"></i></a>{' '}
           <a title="Toggle Settings" onClick={this.toggleSettings.bind(this)}><i className="fa fa-wrench fa-lg" aria-hidden="true"></i></a>{' '}
           <i title="Share" onClick={this.share.bind(this)} className="fa fa-cloud-upload fa-lg" aria-hidden="true"></i>
         </div>
@@ -533,7 +537,7 @@ export class AppComponent extends React.Component<void, {
             <div className="editorHeader"><span className="editorHeaderTitle">{this.state.isC ? "C" : "C++"}</span>
               <div className="editorHeaderButtons">
                 <a title="Build: CTRL + Shift + Return" onClick={this.build.bind(this)}>Build <i className={"fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg"} aria-hidden="true"></i></a>{' '}
-                <a title="Run: CTRL + Return" onClick={this.runHarness.bind(this)}>Run <i className="fa fa-play-circle fa-lg" aria-hidden="true"></i></a>
+                <a className={this.wasmCode ? "" : "disabled-link"} title="Run: CTRL + Return" onClick={this.runHarness.bind(this)}>Run <i className="fa fa-play-circle fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
             <EditorComponent ref={(self: any) => this.mainEditor = self} name="main" mode="ace/mode/c_cpp" showGutter={true} showLineNumbers={true} />
@@ -561,8 +565,8 @@ export class AppComponent extends React.Component<void, {
               </select>
               <div className="editorHeaderButtons">
                 {/*<a title="Assemble" onClick={this.assemble.bind(this)}>Assemble <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>*/}
-                Download <a title="Download WebAssembly Text" onClick={this.download.bind(this, "wast")}>Wast <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>{' '}
-                <a title="Download WebAssembly Binary" onClick={this.download.bind(this, "wasm")}>Wasm <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
+                <a className={this.wasmCode ? "" : "disabled-link"} title="Download WebAssembly Text" onClick={this.download.bind(this, "wast")}>Wast <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>{' '}
+                <a className={this.wasmCode ? "" : "disabled-link"} title="Download WebAssembly Binary" onClick={this.download.bind(this, "wasm")}>Wasm <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
             <EditorComponent ref={(self: any) => this.viewEditor = self} name="view" save={false} readOnly={true} fontSize={10} />
@@ -571,7 +575,7 @@ export class AppComponent extends React.Component<void, {
             <div className="editorHeader"><span className="editorHeaderTitle">Output</span>
               <div className="editorHeaderButtons">
                 <a title="Toggle Canvas" onClick={this.toggleCanvas.bind(this)}>Canvas <i className="fa fa-picture-o fa-lg" aria-hidden="true"></i></a>{' '}
-                <a title="Clear Output" onClick={this.clear.bind(this)}>Clear Output <i className="fa fa-close fa-lg" aria-hidden="true"></i></a>
+                <a title="Clear Output: CTRL + Shift + K" onClick={this.clear.bind(this)}>Clear <i className="fa fa-close fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
             <EditorComponent ref={(self: any) => this.outputEditor = self} name="output" save={false} readOnly={true} />

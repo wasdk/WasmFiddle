@@ -81,7 +81,8 @@ html, body {
 
 .editorHeaderTitle {
   color: #32a9e6;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: bold;
   font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
 
@@ -211,4 +212,9 @@ iframe.hidden {
   height: 10;
   z-index: -1000;
   visibility: hidden;
+}
+
+.disabled-link {
+  pointer-events: none;
+  color: #AAAAAA;
 }
