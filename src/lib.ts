@@ -69,7 +69,7 @@ function dumpMemory(memory: (Uint8Array|ArrayBuffer), ptr: number, len: number):
     return String.fromCharCode(i);
   }
   let str = "";
-  for (let i = ptr; i < len; i += 16) {
+  for (let i = ptr; i < ptr + len; i += 16) {
     str += padAddress(i.toString(16).toUpperCase());
     str += " ";
     for (let j = i; j < i + 16; j++) {
@@ -83,6 +83,7 @@ function dumpMemory(memory: (Uint8Array|ArrayBuffer), ptr: number, len: number):
   }
   lib.log(str);
 }
+
 
 export let lib = {
   log: null as any,
