@@ -26,7 +26,7 @@ html, body {
   height: 100%;
   width: 100%;
   grid-template-rows: 100%;
-  grid-template-columns: 40px auto 120px;
+  grid-template-columns: 40px auto 160px;
 }
 
 .gShareURI {
@@ -100,12 +100,18 @@ html, body {
   font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
 
-.settingSection {
+.codeSpan {
   padding-top: 8px;
+  color: #32a9e6;
   font-size: 11px;
   font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
 
+.settingSection, .helpSection {
+  padding-top: 4px;
+  font-size: 11px;
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+}
 
 .header {
   padding: 8px;
@@ -153,7 +159,7 @@ a:hover {
   height: 512px;
 }
 
-.settingsOverlay, .canvasOverlay {
+.settingsOverlay, .canvasOverlay, .helpOverlay {
   top: 0;
   left: 0;
   right: 0;
