@@ -159,6 +159,9 @@
 	    }
 	    return decoded;
 	}
+	const defaultHarnessText = `var wasmModule = new WebAssembly.Module(wasmCode);\n` +
+	    `var wasmInstance = new WebAssembly.Instance(wasmModule, wasmImports);\n` +
+	    `log(wasmInstance.exports.main());\n`;
 	class AppComponent extends React.Component {
 	    constructor() {
 	        super();
@@ -179,12 +182,17 @@
 	            isC: true,
 	            view: "wast",
 	            showCanvas: false,
-	            showSettings: false
+	            showSettings: false,
+	            showHelp: false
 	        };
 	    }
 	    installKeyboardShortcuts() {
 	        Mousetrap.bind(['ctrl+shift+enter'], (e) => {
 	            this.build();
+	            e.preventDefault();
+	        });
+	        Mousetrap.bind(['ctrl+shift+k'], (e) => {
+	            this.clear();
 	            e.preventDefault();
 	        });
 	        Mousetrap.bind(['ctrl+enter'], (e) => {
@@ -270,9 +278,7 @@
 	            this.loadFiddledState({
 	                editors: {
 	                    "main": "int main() { \n  return 42;\n}",
-	                    "harness": "var wasmModule = new WebAssembly.Module(wasmCode);\n" +
-	                        "var wasmInstance = new WebAssembly.Instance(wasmModule);\n\n" +
-	                        "log(wasmInstance.exports.main());"
+	                    "harness": defaultHarnessText
 	                }
 	            });
 	        }
@@ -480,6 +486,9 @@
 	    toggleSettings() {
 	        this.setState({ showSettings: !this.state.showSettings });
 	    }
+	    toggleHelp() {
+	        this.setState({ showHelp: !this.state.showHelp });
+	    }
 	    clear() {
 	        this.outputEditor.editor.setValue("");
 	    }
@@ -525,14 +534,15 @@
 	                React.createElement("div", null, 
 	                    React.createElement("div", {className: "canvasOverlay", style: { display: this.state.showCanvas ? "" : "none" }}, 
 	                        React.createElement("div", {className: "editorHeader"}, 
+	                            React.createElement("span", {className: "editorHeaderTitle"}, "Canvas"), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
 	                                React.createElement("a", {title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this)}, 
 	                                    "Hide ", 
 	                                    React.createElement("i", {className: "fa fa-window-close fa-lg", "aria-hidden": "true"}))
-	                            )
-	                        ), 
+	                            )), 
 	                        React.createElement("canvas", {className: "outputCanvas", ref: (self) => this.canvas = self, width: 1024, height: 1024})), 
 	                    React.createElement("div", {className: "settingsOverlay", style: { display: this.state.showSettings ? "" : "none" }}, 
+	                        React.createElement("span", {className: "editorHeaderTitle"}, "Settings"), 
 	                        React.createElement("div", {className: "editorHeader"}, 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
 	                                React.createElement("a", {title: "Toggle Settings", onClick: this.toggleSettings.bind(this)}, 
@@ -544,6 +554,37 @@
 	                        React.createElement("div", {className: "settingSection"}, 
 	                            React.createElement(CompilerOptions_1.CompilerOptionsComponent, {options: this.state.compilerOptions, onChange: this.compilerOptionsChanged.bind(this)}), 
 	                            ' ')), 
+	                    React.createElement("div", {className: "helpOverlay", style: { display: this.state.showHelp ? "" : "none" }}, 
+	                        React.createElement("div", {className: "editorHeader"}, 
+	                            React.createElement("span", {className: "editorHeaderTitle"}, "Help"), 
+	                            React.createElement("div", {className: "editorHeaderButtons"}, 
+	                                React.createElement("a", {title: "Toggle Settings", onClick: this.toggleHelp.bind(this)}, 
+	                                    "Hide ", 
+	                                    React.createElement("i", {className: "fa fa-window-close fa-lg", "aria-hidden": "true"}))
+	                            )), 
+	                        React.createElement("div", {className: "settingSection"}, "WasmFiddle lets you compile C/C++ code to WebAssembly and run it in the browser." + ' ' + "The JavaScript harness on the right has several global variables and helper functions."), 
+	                        React.createElement("div", {className: "settingSectionHeader"}, "wasmCode: Uint8Array"), 
+	                        React.createElement("div", {className: "settingSection"}, "The compiled WebAssembly buffer."), 
+	                        React.createElement("div", {className: "settingSectionHeader"}, 
+	                            "wasmImports: ", 
+	                            "{ ... }"), 
+	                        React.createElement("div", {className: "settingSection"}, "This object is automatically generated by WasmFiddle for your convenience." + ' ' + "It's a template containing function stubs for each imported WebAssembly function."), 
+	                        React.createElement("div", {className: "settingSectionHeader"}, "canvas: HTMLCanvasElement"), 
+	                        React.createElement("div", {className: "settingSection"}, 
+	                            "WasmFiddle creates a 1024x1024 canvas element that you can draw into." + ' ' + "You can display the canvas programmatically using ", 
+	                            React.createElement("span", {className: "codeSpan"}, "lib.showCanvas()"), 
+	                            "."), 
+	                        React.createElement("div", {className: "settingSectionHeader"}, "log()"), 
+	                        React.createElement("div", {className: "settingSection"}, 
+	                            "A simple logging function whose output is shown on the bottom right." + ' ' + "You may also use the browser's ", 
+	                            React.createElement("span", {className: "codeSpan"}, "console"), 
+	                            " object but you'll need to open up the developer tools to see the output."), 
+	                        React.createElement("div", {className: "settingSectionHeader"}, "lib.UTF8ArrayToString(heap: Uint8Array, ptr: number)"), 
+	                        React.createElement("div", {className: "settingSection"}, "Converts a C string into a JavaScript string."), 
+	                        React.createElement("div", {className: "settingSectionHeader"}, "lib.dumpMemory(heap: Uint8Array, ptr: number, len: number)"), 
+	                        React.createElement("div", {className: "settingSection"}, "Prints memory contents."), 
+	                        React.createElement("div", {className: "settingSectionHeader"}, "lib.setStackPtr(heap: Uint8Array, ptr: number)"), 
+	                        React.createElement("div", {className: "settingSection"}, "Sets the default stack pointer address.")), 
 	                    React.createElement("img", {src: "img/web-assembly-icon-white-64px.png", className: "waIcon"})), 
 	                React.createElement("div", {className: "gShareURI"}, window.location.origin + window.location.pathname + '?' + State_1.State.fiddleURI), 
 	                React.createElement("div", {className: "gShareButton"}, 
@@ -551,12 +592,16 @@
 	                        React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true"})
 	                    ), 
 	                    ' ', 
-	                    React.createElement("a", {title: "Run: CTRL + Return", onClick: this.runHarness.bind(this)}, 
+	                    React.createElement("a", {className: this.wasmCode ? "" : "disabled-link", title: "Run: CTRL + Return", onClick: this.runHarness.bind(this)}, 
 	                        React.createElement("i", {className: "fa fa-play-circle fa-lg", "aria-hidden": "true"})
 	                    ), 
 	                    ' ', 
 	                    React.createElement("a", {title: "Toggle Settings", onClick: this.toggleSettings.bind(this)}, 
 	                        React.createElement("i", {className: "fa fa-wrench fa-lg", "aria-hidden": "true"})
+	                    ), 
+	                    ' ', 
+	                    React.createElement("a", {title: "Toggle Help", onClick: this.toggleHelp.bind(this)}, 
+	                        React.createElement("i", {className: "fa fa-book fa-lg", "aria-hidden": "true"})
 	                    ), 
 	                    ' ', 
 	                    React.createElement("i", {title: "Share", onClick: this.share.bind(this), className: "fa fa-cloud-upload fa-lg", "aria-hidden": "true"}))), 
@@ -570,7 +615,7 @@
 	                                    "Build ", 
 	                                    React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true"})), 
 	                                ' ', 
-	                                React.createElement("a", {title: "Run: CTRL + Return", onClick: this.runHarness.bind(this)}, 
+	                                React.createElement("a", {className: this.wasmCode ? "" : "disabled-link", title: "Run: CTRL + Return", onClick: this.runHarness.bind(this)}, 
 	                                    "Run ", 
 	                                    React.createElement("i", {className: "fa fa-play-circle fa-lg", "aria-hidden": "true"})))), 
 	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.mainEditor = self, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true})), 
@@ -591,12 +636,11 @@
 	                                React.createElement("option", {value: "x86"}, "Firefox x86"), 
 	                                React.createElement("option", {value: "x86-baseline"}, "Firefox x86 Baseline")), 
 	                            React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                "Download ", 
-	                                React.createElement("a", {title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
+	                                React.createElement("a", {className: this.wasmCode ? "" : "disabled-link", title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
 	                                    "Wast ", 
 	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})), 
 	                                ' ', 
-	                                React.createElement("a", {title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
+	                                React.createElement("a", {className: this.wasmCode ? "" : "disabled-link", title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
 	                                    "Wasm ", 
 	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})))), 
 	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.viewEditor = self, name: "view", save: false, readOnly: true, fontSize: 10})), 
@@ -608,10 +652,10 @@
 	                                    "Canvas ", 
 	                                    React.createElement("i", {className: "fa fa-picture-o fa-lg", "aria-hidden": "true"})), 
 	                                ' ', 
-	                                React.createElement("a", {title: "Clear Output", onClick: this.clear.bind(this)}, 
-	                                    "Clear Output ", 
+	                                React.createElement("a", {title: "Clear Output: CTRL + Shift + K", onClick: this.clear.bind(this)}, 
+	                                    "Clear ", 
 	                                    React.createElement("i", {className: "fa fa-close fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.outputEditor = self, name: "output", save: false, readOnly: true})))
+	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.outputEditor = self, name: "output", save: false, readOnly: true, fontSize: 10})))
 	            ));
 	    }
 	}
@@ -714,6 +758,11 @@
 	                }
 	            },
 	            {
+	                bindKey: { win: "Ctrl-Shift-K", mac: "Ctrl-Shift-K" }, exec: function () {
+	                    State_1.State.app.clear();
+	                }
+	            },
+	            {
 	                bindKey: { win: "Ctrl-Return", mac: "Ctrl-Return" }, exec: function () {
 	                    State_1.State.app.runHarness();
 	                }
@@ -734,7 +783,7 @@
 	    readOnly: false,
 	    showGutter: false,
 	    showLineNumbers: false,
-	    fontSize: 11,
+	    fontSize: 12,
 	    style: null
 	};
 	exports.EditorComponent = EditorComponent;
@@ -887,7 +936,7 @@
 	        return String.fromCharCode(i);
 	    }
 	    let str = "";
-	    for (let i = ptr; i < len; i += 16) {
+	    for (let i = ptr; i < ptr + len; i += 16) {
 	        str += padAddress(i.toString(16).toUpperCase());
 	        str += " ";
 	        for (let j = i; j < i + 16; j++) {
