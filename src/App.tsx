@@ -512,7 +512,7 @@ export class AppComponent extends React.Component<void, {
                 <a title="Toggle Canvas" onClick={this.toggleCanvas.bind(this)}>Hide <i className="fa fa-window-close fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
-            <canvas className="outputCanvas" ref={(self: any) => this.canvas = self} width={1024} height={1024} />
+            <canvas className="outputCanvas" ref={(self: any) => this.canvas = self} width={1200} height={1200} />
           </div>
           <div className="settingsOverlay" style={{display: this.state.showSettings ? "" : "none"}}>
             <span className="editorHeaderTitle">
@@ -560,7 +560,7 @@ export class AppComponent extends React.Component<void, {
               canvas: HTMLCanvasElement
             </div>
             <div className="settingSection">
-              WasmFiddle creates a 1024x1024 canvas element that you can draw into.
+              WasmFiddle creates a 1200x1200 canvas element that you can draw into.
               You can display the canvas programmatically using <span className="codeSpan">lib.showCanvas()</span>.
             </div>
             <div className="settingSectionHeader">
