@@ -4,6 +4,7 @@ import { State } from "./State";
 import { EditorComponent } from "./components/Editor";
 import { CompilerOptionsComponent } from "./components/CompilerOptions";
 import { lib } from "./lib"
+import { syscall } from "./syscall";
 import { IFrameSandbox } from "./iframesandbox";
 
 declare var require: any;
@@ -111,6 +112,7 @@ const defaultHarnessText =
 
 export class AppComponent extends React.Component<void, {
   compilerOptions: string,
+  compilerVersion: number,
   isCompiling: boolean;
   isC: boolean;
   view: string;
@@ -125,6 +127,7 @@ export class AppComponent extends React.Component<void, {
     State.app = this;
     this.state = {
       compilerOptions: "-O3 -std=C99",
+      compilerVersion: 1,
       isCompiling: false,
       isC: true,
       view: "wast",
@@ -160,9 +163,9 @@ export class AppComponent extends React.Component<void, {
     this.init();
   }
 
-  compilerOptionsChanged(options: string) {
+  compilerOptionsChanged(options: string, compilerVersion: number) {
     let isC = options.indexOf("C++") < 0;
-    this.setState({ compilerOptions: options, isC } as any);
+    this.setState({ compilerOptions: options, compilerVersion, isC } as any);
   }
 
   onResize() {
@@ -247,7 +250,8 @@ export class AppComponent extends React.Component<void, {
         main: this.mainEditor.editor.getValue(),
         harness: this.harnessEditor.editor.getValue()
       },
-      compilerOptions: this.state.compilerOptions
+      compilerOptions: this.state.compilerOptions,
+      compilerVersion: this.state.compilerVersion
     }
   }
   loadFiddledState(fiddleState: any) {
@@ -263,7 +267,11 @@ export class AppComponent extends React.Component<void, {
 
     if (fiddleState.compilerOptions) {
       let isC = fiddleState.compilerOptions.indexOf("C++") < 0;
-      this.setState({ compilerOptions: fiddleState.compilerOptions, isC } as any);
+      this.setState({
+        compilerOptions: fiddleState.compilerOptions,
+        compilerVersion: fiddleState.compilerVersion,
+        isC
+      } as any);
     }
   }
 
@@ -364,6 +372,8 @@ export class AppComponent extends React.Component<void, {
     lib.showCanvas = function (x: boolean = true) {
       self.setState({showCanvas: x} as any);
     };
+    lib.currentInstance = null;
+    lib.syscall = syscall;
     func.onerror = (x) => {
       self.appendOutput(x);
       State.sendAppEvent("error", "Run Harness");
@@ -380,6 +390,27 @@ export class AppComponent extends React.Component<void, {
     WebAssembly.Module.imports(new WebAssembly.Module(this.wasmCode)).forEach((i: any) => {
       if (!wasmImports[i.module]) {
         wasmImports[i.module] = {};
+      }
+      if (/^__syscall\d+$/.test(i.name) && i.kind === "function") {
+        let num = +i.name.substring("__syscall".length);
+        if (string) {
+          let args = [];
+          for (let j = 0; j < num; j++)
+            args.push(', ', String.fromCharCode(97 + j));
+          wasmImports[i.module][i.name] =
+          `    // ${name}\n` +
+          `    ${i.name}: function ${i.name} (n${args.join('')}) {\n` +
+          `      return lib.syscall(wasmInstance, n${args.join('')});\n` +
+          `    }`;
+        } else {
+          wasmImports[i.module][i.name] = function () {
+            if (!lib.currentInstance) {
+              throw new Error(`${i.name}: lib.currentInstance must be specified`);
+            }
+            return lib.syscall(lib.currentInstance, ...arguments);
+          };
+        }
+        return;
       }
       if (i.kind === "function") {
         let name = demangle("_" + i.name);
@@ -416,9 +447,10 @@ export class AppComponent extends React.Component<void, {
     let self = this;
     src = encodeURIComponent(src).replace('%20', '+');
     let action = this.state.isC ? "c2wast" : "cpp2wast";
+    let compilerVersion = this.state.compilerVersion;
     options = encodeURIComponent(options);
     self.setState({ isCompiling: true } as any);
-    State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
+    State.sendRequest("input=" + src + "&action=" + action + "&version=" + compilerVersion + "&options=" + options, function () {
       self.setState({ isCompiling: false } as any);
       if (!this.responseText) {
         this.appendOutput("Something went wrong while compiling " + action + ".");
@@ -527,7 +559,7 @@ export class AppComponent extends React.Component<void, {
               Compiler Options
             </div>
             <div className="settingSection">
-              <CompilerOptionsComponent options={this.state.compilerOptions} onChange={this.compilerOptionsChanged.bind(this)} />{' '}
+              <CompilerOptionsComponent options={this.state.compilerOptions} compilerVersion={this.state.compilerVersion} onChange={this.compilerOptionsChanged.bind(this)} />{' '}
             </div>
           </div>
           <div className="helpOverlay" style={{display: this.state.showHelp ? "" : "none"}}>

@@ -3,17 +3,20 @@ import * as React from "react";
 interface CompilerOptionsComponentState {
   dialect: string;
   optimizationLevel: string;
+  compilerVersion: number;
 }
 
 export class CompilerOptionsComponent extends React.Component<{
   options?: string;
-  onChange?: (options: string) => void
+  compilerVersion?: number;
+  onChange?: (options: string, version: number) => void
 }, CompilerOptionsComponentState> {
   constructor () {
     super();
     this.state = {
       dialect: "-std=C99",
-      optimizationLevel: "-O3"
+      optimizationLevel: "-O3",
+      compilerVersion: 1
     } as any;
   }
 
@@ -22,18 +25,23 @@ export class CompilerOptionsComponent extends React.Component<{
 
   componentDidMount() {
     if (this.props.options) {
-      this.loadState(this.props.options);
+      this.loadState(this.props.options, this.props.compilerVersion || 1);
     }
   }
   componentWillReceiveProps(props: any) {
     if (props.options) {
-      this.loadState(props.options);
+      this.loadState(props.options, props.compilerVersion);
     }
   }
   optimizationLevelChanged(e: any) {
     this.setState({optimizationLevel: e.target.value} as any, () => {
       this.onChange();
     });
+  }
+  newCompilerChanged(e: any) {
+    this.setState({compilerVersion: e.target.checked ? 2 : 1} as any, () => {
+      this.onChange();
+    })
   }
 
   dialectChanged(e: any) {
@@ -42,7 +50,7 @@ export class CompilerOptionsComponent extends React.Component<{
     });
   }
 
-  loadState(options: string) {
+  loadState(options: string, compilerVersion: number) {
     let s: CompilerOptionsComponentState = {} as any;
     options.split(" ").forEach(o => {
       if (o.indexOf("-O") == 0) {
@@ -51,6 +59,7 @@ export class CompilerOptionsComponent extends React.Component<{
         s.dialect = o;
       }
     });
+    s.compilerVersion = compilerVersion;
     this.setState(s);
   }
 
@@ -60,18 +69,26 @@ export class CompilerOptionsComponent extends React.Component<{
 
   onChange() {
     if (this.props.onChange) {
-      this.props.onChange(this.saveState());
+      this.props.onChange(this.saveState(), this.state.compilerVersion);
     }
   }
 
   render() {
-    return <span>
-      <select title="Optimization Level" value={this.state.optimizationLevel} onChange={this.optimizationLevelChanged.bind(this)}>
-        { this.optimizationLevels.map(x => <option key={x}>{x}</option>) }
-      </select>{' '}
-      <select title="Dialect" value={this.state.dialect} onChange={this.dialectChanged.bind(this)}>
-        { this.dialects.map(x => <option key={x}>{x}</option>) }
-      </select>
-    </span>
+    return <div>
+      <span>
+        <select title="Optimization Level" value={this.state.optimizationLevel} onChange={this.optimizationLevelChanged.bind(this)}>
+          { this.optimizationLevels.map(x => <option key={x}>{x}</option>) }
+        </select>{' '}
+        <select title="Dialect" value={this.state.dialect} onChange={this.dialectChanged.bind(this)}>
+          { this.dialects.map(x => <option key={x}>{x}</option>) }
+        </select>
+      </span><br/>
+      <span>
+        <label>
+          New compiler:
+          <input type="checkbox" checked={this.state.compilerVersion == 2} onChange={this.newCompilerChanged.bind(this)}/>
+        </label>
+      </span>
+    </div>
   }
 }

@@ -25,7 +25,7 @@ export class State {
     xhr.addEventListener("load", function () {
       cb.call(this);
     });
-    xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
+    xhr.open("POST", "//wasmexplorer-service-next.herokuapp.com/service.php", true);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     xhr.send(command);
   }

@@ -45,6 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
 	const React = __webpack_require__(1);
 	const ReactDOM = __webpack_require__(2);
 	const App_1 = __webpack_require__(3);
@@ -52,7 +53,7 @@
 	    ReactDOM.render(React.createElement(App_1.AppComponent, null), document.getElementById("app"));
 	}
 	else {
-	    ReactDOM.render(React.createElement("div", {className: "notSupported"}, "WebAssembly is not yet available in your browser. Please use the latest version of Firefox or Chrome."), document.getElementById("app"));
+	    ReactDOM.render(React.createElement("div", { className: "notSupported" }, "WebAssembly is not yet available in your browser. Please use the latest version of Firefox or Chrome."), document.getElementById("app"));
 	}
 
 
@@ -73,13 +74,15 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
 	const React = __webpack_require__(1);
 	const State_1 = __webpack_require__(4);
 	const Editor_1 = __webpack_require__(5);
 	const CompilerOptions_1 = __webpack_require__(6);
 	const lib_1 = __webpack_require__(7);
-	const iframesandbox_1 = __webpack_require__(8);
-	let { demangle } = __webpack_require__(9);
+	const syscall_1 = __webpack_require__(8);
+	const iframesandbox_1 = __webpack_require__(9);
+	let { demangle } = __webpack_require__(10);
 	function lazyLoad(s, cb) {
 	    var self = this;
 	    var d = window.document;
@@ -178,6 +181,7 @@
 	        State_1.State.app = this;
 	        this.state = {
 	            compilerOptions: "-O3 -std=C99",
+	            compilerVersion: 1,
 	            isCompiling: false,
 	            isC: true,
 	            view: "wast",
@@ -207,9 +211,9 @@
 	    componentDidMount() {
 	        this.init();
 	    }
-	    compilerOptionsChanged(options) {
+	    compilerOptionsChanged(options, compilerVersion) {
 	        let isC = options.indexOf("C++") < 0;
-	        this.setState({ compilerOptions: options, isC });
+	        this.setState({ compilerOptions: options, compilerVersion, isC });
 	    }
 	    onResize() {
 	        // State.resize();
@@ -289,7 +293,8 @@
 	                main: this.mainEditor.editor.getValue(),
 	                harness: this.harnessEditor.editor.getValue()
 	            },
-	            compilerOptions: this.state.compilerOptions
+	            compilerOptions: this.state.compilerOptions,
+	            compilerVersion: this.state.compilerVersion
 	        };
 	    }
 	    loadFiddledState(fiddleState) {
@@ -304,7 +309,11 @@
 	        this.harnessEditor.editor.setValue(fiddleState.editors.harness, -1);
 	        if (fiddleState.compilerOptions) {
 	            let isC = fiddleState.compilerOptions.indexOf("C++") < 0;
-	            this.setState({ compilerOptions: fiddleState.compilerOptions, isC });
+	            this.setState({
+	                compilerOptions: fiddleState.compilerOptions,
+	                compilerVersion: fiddleState.compilerVersion,
+	                isC
+	            });
 	        }
 	    }
 	    build() {
@@ -393,6 +402,8 @@
 	        lib_1.lib.showCanvas = function (x = true) {
 	            self.setState({ showCanvas: x });
 	        };
+	        lib_1.lib.currentInstance = null;
+	        lib_1.lib.syscall = syscall_1.syscall;
 	        func.onerror = (x) => {
 	            self.appendOutput(x);
 	            State_1.State.sendAppEvent("error", "Run Harness");
@@ -407,6 +418,28 @@
 	        WebAssembly.Module.imports(new WebAssembly.Module(this.wasmCode)).forEach((i) => {
 	            if (!wasmImports[i.module]) {
 	                wasmImports[i.module] = {};
+	            }
+	            if (/^__syscall\d+$/.test(i.name) && i.kind === "function") {
+	                let num = +i.name.substring("__syscall".length);
+	                if (string) {
+	                    let args = [];
+	                    for (let j = 0; j < num; j++)
+	                        args.push(', ', String.fromCharCode(97 + j));
+	                    wasmImports[i.module][i.name] =
+	                        `    // ${name}\n` +
+	                            `    ${i.name}: function ${i.name} (n${args.join('')}) {\n` +
+	                            `      return lib.syscall(wasmInstance, n${args.join('')});\n` +
+	                            `    }`;
+	                }
+	                else {
+	                    wasmImports[i.module][i.name] = function () {
+	                        if (!lib_1.lib.currentInstance) {
+	                            throw new Error(`${i.name}: lib.currentInstance must be specified`);
+	                        }
+	                        return lib_1.lib.syscall(lib_1.lib.currentInstance, ...arguments);
+	                    };
+	                }
+	                return;
 	            }
 	            if (i.kind === "function") {
 	                let name = demangle("_" + i.name);
@@ -443,9 +476,10 @@
 	        let self = this;
 	        src = encodeURIComponent(src).replace('%20', '+');
 	        let action = this.state.isC ? "c2wast" : "cpp2wast";
+	        let compilerVersion = this.state.compilerVersion;
 	        options = encodeURIComponent(options);
 	        self.setState({ isCompiling: true });
-	        State_1.State.sendRequest("input=" + src + "&action=" + action + "&options=" + options, function () {
+	        State_1.State.sendRequest("input=" + src + "&action=" + action + "&version=" + compilerVersion + "&options=" + options, function () {
 	            self.setState({ isCompiling: false });
 	            if (!this.responseText) {
 	                this.appendOutput("Something went wrong while compiling " + action + ".");
@@ -528,135 +562,125 @@
 	                }
 	            }
 	        }
-	        return React.createElement("div", {className: "gAppContainer"}, 
-	            React.createElement("a", {style: { display: "none" }, ref: (self) => this.downloadLink = self}), 
-	            React.createElement("div", {className: "gHeader"}, 
-	                React.createElement("div", null, 
-	                    React.createElement("div", {className: "canvasOverlay", style: { display: this.state.showCanvas ? "" : "none" }}, 
-	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "Canvas"), 
-	                            React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                React.createElement("a", {title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this)}, 
-	                                    "Hide ", 
-	                                    React.createElement("i", {className: "fa fa-window-close fa-lg", "aria-hidden": "true"}))
-	                            )), 
-	                        React.createElement("canvas", {className: "outputCanvas", ref: (self) => this.canvas = self, width: 1200, height: 1200})), 
-	                    React.createElement("div", {className: "settingsOverlay", style: { display: this.state.showSettings ? "" : "none" }}, 
-	                        React.createElement("span", {className: "editorHeaderTitle"}, "Settings"), 
-	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                React.createElement("a", {title: "Toggle Settings", onClick: this.toggleSettings.bind(this)}, 
-	                                    "Hide ", 
-	                                    React.createElement("i", {className: "fa fa-window-close fa-lg", "aria-hidden": "true"}))
-	                            )
-	                        ), 
-	                        React.createElement("div", {className: "settingSectionHeader"}, "Compiler Options"), 
-	                        React.createElement("div", {className: "settingSection"}, 
-	                            React.createElement(CompilerOptions_1.CompilerOptionsComponent, {options: this.state.compilerOptions, onChange: this.compilerOptionsChanged.bind(this)}), 
-	                            ' ')), 
-	                    React.createElement("div", {className: "helpOverlay", style: { display: this.state.showHelp ? "" : "none" }}, 
-	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "Help"), 
-	                            React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                React.createElement("a", {title: "Toggle Settings", onClick: this.toggleHelp.bind(this)}, 
-	                                    "Hide ", 
-	                                    React.createElement("i", {className: "fa fa-window-close fa-lg", "aria-hidden": "true"}))
-	                            )), 
-	                        React.createElement("div", {className: "settingSection"}, "WasmFiddle lets you compile C/C++ code to WebAssembly and run it in the browser." + ' ' + "The JavaScript harness on the right has several global variables and helper functions."), 
-	                        React.createElement("div", {className: "settingSectionHeader"}, "wasmCode: Uint8Array"), 
-	                        React.createElement("div", {className: "settingSection"}, "The compiled WebAssembly buffer."), 
-	                        React.createElement("div", {className: "settingSectionHeader"}, 
-	                            "wasmImports: ", 
-	                            "{ ... }"), 
-	                        React.createElement("div", {className: "settingSection"}, "This object is automatically generated by WasmFiddle for your convenience." + ' ' + "It's a template containing function stubs for each imported WebAssembly function."), 
-	                        React.createElement("div", {className: "settingSectionHeader"}, "canvas: HTMLCanvasElement"), 
-	                        React.createElement("div", {className: "settingSection"}, 
-	                            "WasmFiddle creates a 1200x1200 canvas element that you can draw into." + ' ' + "You can display the canvas programmatically using ", 
-	                            React.createElement("span", {className: "codeSpan"}, "lib.showCanvas()"), 
-	                            "."), 
-	                        React.createElement("div", {className: "settingSectionHeader"}, "log()"), 
-	                        React.createElement("div", {className: "settingSection"}, 
-	                            "A simple logging function whose output is shown on the bottom right." + ' ' + "You may also use the browser's ", 
-	                            React.createElement("span", {className: "codeSpan"}, "console"), 
-	                            " object but you'll need to open up the developer tools to see the output."), 
-	                        React.createElement("div", {className: "settingSectionHeader"}, "lib.UTF8ArrayToString(heap: Uint8Array, ptr: number)"), 
-	                        React.createElement("div", {className: "settingSection"}, "Converts a C string into a JavaScript string."), 
-	                        React.createElement("div", {className: "settingSectionHeader"}, "lib.dumpMemory(heap: Uint8Array, ptr: number, len: number)"), 
-	                        React.createElement("div", {className: "settingSection"}, "Prints memory contents."), 
-	                        React.createElement("div", {className: "settingSectionHeader"}, "lib.setStackPtr(heap: Uint8Array, ptr: number)"), 
-	                        React.createElement("div", {className: "settingSection"}, "Sets the default stack pointer address.")), 
-	                    React.createElement("img", {src: "img/web-assembly-icon-white-64px.png", className: "waIcon"})), 
-	                React.createElement("div", {className: "gShareURI"}, window.location.origin + window.location.pathname + '?' + State_1.State.fiddleURI), 
-	                React.createElement("div", {className: "gShareButton"}, 
-	                    React.createElement("a", {title: "Build: CTRL + Shift + Return", onClick: this.build.bind(this)}, 
-	                        React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true"})
-	                    ), 
-	                    ' ', 
-	                    React.createElement("a", {className: this.wasmCode ? "" : "disabled-link", title: "Run: CTRL + Return", onClick: this.runHarness.bind(this)}, 
-	                        React.createElement("i", {className: "fa fa-play-circle fa-lg", "aria-hidden": "true"})
-	                    ), 
-	                    ' ', 
-	                    React.createElement("a", {title: "Toggle Settings", onClick: this.toggleSettings.bind(this)}, 
-	                        React.createElement("i", {className: "fa fa-wrench fa-lg", "aria-hidden": "true"})
-	                    ), 
-	                    ' ', 
-	                    React.createElement("a", {title: "Toggle Help", onClick: this.toggleHelp.bind(this)}, 
-	                        React.createElement("i", {className: "fa fa-book fa-lg", "aria-hidden": "true"})
-	                    ), 
-	                    ' ', 
-	                    React.createElement("i", {title: "Share", onClick: this.share.bind(this), className: "fa fa-cloud-upload fa-lg", "aria-hidden": "true"}))), 
-	            React.createElement("div", null, 
-	                React.createElement("div", {className: "gV2"}, 
-	                    React.createElement("div", null, 
-	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, this.state.isC ? "C" : "C++"), 
-	                            React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                React.createElement("a", {title: "Build: CTRL + Shift + Return", onClick: this.build.bind(this)}, 
-	                                    "Build ", 
-	                                    React.createElement("i", {className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true"})), 
-	                                ' ', 
-	                                React.createElement("a", {className: this.wasmCode ? "" : "disabled-link", title: "Run: CTRL + Return", onClick: this.runHarness.bind(this)}, 
-	                                    "Run ", 
-	                                    React.createElement("i", {className: "fa fa-play-circle fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.mainEditor = self, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true})), 
-	                    React.createElement("div", null, 
-	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "JS"), 
-	                            React.createElement("div", {className: "editorHeaderButtons"})), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.harnessEditor = self, name: "harness", mode: "ace/mode/javascript", showGutter: true, showLineNumbers: true})))
-	            ), 
-	            React.createElement("div", null, 
-	                React.createElement("div", {className: "gV2"}, 
-	                    React.createElement("div", null, 
-	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("select", {title: "Optimization Level", value: this.state.view, onChange: this.onViewChanged.bind(this)}, 
-	                                React.createElement("option", {value: "wast"}, "Text Format"), 
-	                                React.createElement("option", {value: "wasm"}, "Code Buffer"), 
-	                                React.createElement("option", {value: "imports"}, "Imports Template"), 
-	                                React.createElement("option", {value: "x86"}, "Firefox x86"), 
-	                                React.createElement("option", {value: "x86-baseline"}, "Firefox x86 Baseline")), 
-	                            React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                React.createElement("a", {className: this.wasmCode ? "" : "disabled-link", title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast")}, 
-	                                    "Wast ", 
-	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})), 
-	                                ' ', 
-	                                React.createElement("a", {className: this.wasmCode ? "" : "disabled-link", title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm")}, 
-	                                    "Wasm ", 
-	                                    React.createElement("i", {className: "fa fa-download fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.viewEditor = self, name: "view", save: false, readOnly: true, fontSize: 10})), 
-	                    React.createElement("div", null, 
-	                        React.createElement("div", {className: "editorHeader"}, 
-	                            React.createElement("span", {className: "editorHeaderTitle"}, "Output"), 
-	                            React.createElement("div", {className: "editorHeaderButtons"}, 
-	                                React.createElement("a", {title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this)}, 
-	                                    "Canvas ", 
-	                                    React.createElement("i", {className: "fa fa-picture-o fa-lg", "aria-hidden": "true"})), 
-	                                ' ', 
-	                                React.createElement("a", {title: "Clear Output: CTRL + Shift + K", onClick: this.clear.bind(this)}, 
-	                                    "Clear ", 
-	                                    React.createElement("i", {className: "fa fa-close fa-lg", "aria-hidden": "true"})))), 
-	                        React.createElement(Editor_1.EditorComponent, {ref: (self) => this.outputEditor = self, name: "output", save: false, readOnly: true, fontSize: 10})))
-	            ));
+	        return React.createElement("div", { className: "gAppContainer" },
+	            React.createElement("a", { style: { display: "none" }, ref: (self) => this.downloadLink = self }),
+	            React.createElement("div", { className: "gHeader" },
+	                React.createElement("div", null,
+	                    React.createElement("div", { className: "canvasOverlay", style: { display: this.state.showCanvas ? "" : "none" } },
+	                        React.createElement("div", { className: "editorHeader" },
+	                            React.createElement("span", { className: "editorHeaderTitle" }, "Canvas"),
+	                            React.createElement("div", { className: "editorHeaderButtons" },
+	                                React.createElement("a", { title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this) },
+	                                    "Hide ",
+	                                    React.createElement("i", { className: "fa fa-window-close fa-lg", "aria-hidden": "true" })))),
+	                        React.createElement("canvas", { className: "outputCanvas", ref: (self) => this.canvas = self, width: 1200, height: 1200 })),
+	                    React.createElement("div", { className: "settingsOverlay", style: { display: this.state.showSettings ? "" : "none" } },
+	                        React.createElement("span", { className: "editorHeaderTitle" }, "Settings"),
+	                        React.createElement("div", { className: "editorHeader" },
+	                            React.createElement("div", { className: "editorHeaderButtons" },
+	                                React.createElement("a", { title: "Toggle Settings", onClick: this.toggleSettings.bind(this) },
+	                                    "Hide ",
+	                                    React.createElement("i", { className: "fa fa-window-close fa-lg", "aria-hidden": "true" })))),
+	                        React.createElement("div", { className: "settingSectionHeader" }, "Compiler Options"),
+	                        React.createElement("div", { className: "settingSection" },
+	                            React.createElement(CompilerOptions_1.CompilerOptionsComponent, { options: this.state.compilerOptions, compilerVersion: this.state.compilerVersion, onChange: this.compilerOptionsChanged.bind(this) }),
+	                            ' ')),
+	                    React.createElement("div", { className: "helpOverlay", style: { display: this.state.showHelp ? "" : "none" } },
+	                        React.createElement("div", { className: "editorHeader" },
+	                            React.createElement("span", { className: "editorHeaderTitle" }, "Help"),
+	                            React.createElement("div", { className: "editorHeaderButtons" },
+	                                React.createElement("a", { title: "Toggle Settings", onClick: this.toggleHelp.bind(this) },
+	                                    "Hide ",
+	                                    React.createElement("i", { className: "fa fa-window-close fa-lg", "aria-hidden": "true" })))),
+	                        React.createElement("div", { className: "settingSection" }, "WasmFiddle lets you compile C/C++ code to WebAssembly and run it in the browser. The JavaScript harness on the right has several global variables and helper functions."),
+	                        React.createElement("div", { className: "settingSectionHeader" }, "wasmCode: Uint8Array"),
+	                        React.createElement("div", { className: "settingSection" }, "The compiled WebAssembly buffer."),
+	                        React.createElement("div", { className: "settingSectionHeader" },
+	                            "wasmImports: ",
+	                            "{ ... }"),
+	                        React.createElement("div", { className: "settingSection" }, "This object is automatically generated by WasmFiddle for your convenience. It's a template containing function stubs for each imported WebAssembly function."),
+	                        React.createElement("div", { className: "settingSectionHeader" }, "canvas: HTMLCanvasElement"),
+	                        React.createElement("div", { className: "settingSection" },
+	                            "WasmFiddle creates a 1200x1200 canvas element that you can draw into. You can display the canvas programmatically using ",
+	                            React.createElement("span", { className: "codeSpan" }, "lib.showCanvas()"),
+	                            "."),
+	                        React.createElement("div", { className: "settingSectionHeader" }, "log()"),
+	                        React.createElement("div", { className: "settingSection" },
+	                            "A simple logging function whose output is shown on the bottom right. You may also use the browser's ",
+	                            React.createElement("span", { className: "codeSpan" }, "console"),
+	                            " object but you'll need to open up the developer tools to see the output."),
+	                        React.createElement("div", { className: "settingSectionHeader" }, "lib.UTF8ArrayToString(heap: Uint8Array, ptr: number)"),
+	                        React.createElement("div", { className: "settingSection" }, "Converts a C string into a JavaScript string."),
+	                        React.createElement("div", { className: "settingSectionHeader" }, "lib.dumpMemory(heap: Uint8Array, ptr: number, len: number)"),
+	                        React.createElement("div", { className: "settingSection" }, "Prints memory contents."),
+	                        React.createElement("div", { className: "settingSectionHeader" }, "lib.setStackPtr(heap: Uint8Array, ptr: number)"),
+	                        React.createElement("div", { className: "settingSection" }, "Sets the default stack pointer address.")),
+	                    React.createElement("img", { src: "img/web-assembly-icon-white-64px.png", className: "waIcon" })),
+	                React.createElement("div", { className: "gShareURI" }, window.location.origin + window.location.pathname + '?' + State_1.State.fiddleURI),
+	                React.createElement("div", { className: "gShareButton" },
+	                    React.createElement("a", { title: "Build: CTRL + Shift + Return", onClick: this.build.bind(this) },
+	                        React.createElement("i", { className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true" })),
+	                    ' ',
+	                    React.createElement("a", { className: this.wasmCode ? "" : "disabled-link", title: "Run: CTRL + Return", onClick: this.runHarness.bind(this) },
+	                        React.createElement("i", { className: "fa fa-play-circle fa-lg", "aria-hidden": "true" })),
+	                    ' ',
+	                    React.createElement("a", { title: "Toggle Settings", onClick: this.toggleSettings.bind(this) },
+	                        React.createElement("i", { className: "fa fa-wrench fa-lg", "aria-hidden": "true" })),
+	                    ' ',
+	                    React.createElement("a", { title: "Toggle Help", onClick: this.toggleHelp.bind(this) },
+	                        React.createElement("i", { className: "fa fa-book fa-lg", "aria-hidden": "true" })),
+	                    ' ',
+	                    React.createElement("i", { title: "Share", onClick: this.share.bind(this), className: "fa fa-cloud-upload fa-lg", "aria-hidden": "true" }))),
+	            React.createElement("div", null,
+	                React.createElement("div", { className: "gV2" },
+	                    React.createElement("div", null,
+	                        React.createElement("div", { className: "editorHeader" },
+	                            React.createElement("span", { className: "editorHeaderTitle" }, this.state.isC ? "C" : "C++"),
+	                            React.createElement("div", { className: "editorHeaderButtons" },
+	                                React.createElement("a", { title: "Build: CTRL + Shift + Return", onClick: this.build.bind(this) },
+	                                    "Build ",
+	                                    React.createElement("i", { className: "fa fa-cog " + (this.state.isCompiling ? "fa-spin" : "") + " fa-lg", "aria-hidden": "true" })),
+	                                ' ',
+	                                React.createElement("a", { className: this.wasmCode ? "" : "disabled-link", title: "Run: CTRL + Return", onClick: this.runHarness.bind(this) },
+	                                    "Run ",
+	                                    React.createElement("i", { className: "fa fa-play-circle fa-lg", "aria-hidden": "true" })))),
+	                        React.createElement(Editor_1.EditorComponent, { ref: (self) => this.mainEditor = self, name: "main", mode: "ace/mode/c_cpp", showGutter: true, showLineNumbers: true })),
+	                    React.createElement("div", null,
+	                        React.createElement("div", { className: "editorHeader" },
+	                            React.createElement("span", { className: "editorHeaderTitle" }, "JS"),
+	                            React.createElement("div", { className: "editorHeaderButtons" })),
+	                        React.createElement(Editor_1.EditorComponent, { ref: (self) => this.harnessEditor = self, name: "harness", mode: "ace/mode/javascript", showGutter: true, showLineNumbers: true })))),
+	            React.createElement("div", null,
+	                React.createElement("div", { className: "gV2" },
+	                    React.createElement("div", null,
+	                        React.createElement("div", { className: "editorHeader" },
+	                            React.createElement("select", { title: "Optimization Level", value: this.state.view, onChange: this.onViewChanged.bind(this) },
+	                                React.createElement("option", { value: "wast" }, "Text Format"),
+	                                React.createElement("option", { value: "wasm" }, "Code Buffer"),
+	                                React.createElement("option", { value: "imports" }, "Imports Template"),
+	                                React.createElement("option", { value: "x86" }, "Firefox x86"),
+	                                React.createElement("option", { value: "x86-baseline" }, "Firefox x86 Baseline")),
+	                            React.createElement("div", { className: "editorHeaderButtons" },
+	                                React.createElement("a", { className: this.wasmCode ? "" : "disabled-link", title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast") },
+	                                    "Wast ",
+	                                    React.createElement("i", { className: "fa fa-download fa-lg", "aria-hidden": "true" })),
+	                                ' ',
+	                                React.createElement("a", { className: this.wasmCode ? "" : "disabled-link", title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm") },
+	                                    "Wasm ",
+	                                    React.createElement("i", { className: "fa fa-download fa-lg", "aria-hidden": "true" })))),
+	                        React.createElement(Editor_1.EditorComponent, { ref: (self) => this.viewEditor = self, name: "view", save: false, readOnly: true, fontSize: 10 })),
+	                    React.createElement("div", null,
+	                        React.createElement("div", { className: "editorHeader" },
+	                            React.createElement("span", { className: "editorHeaderTitle" }, "Output"),
+	                            React.createElement("div", { className: "editorHeaderButtons" },
+	                                React.createElement("a", { title: "Toggle Canvas", onClick: this.toggleCanvas.bind(this) },
+	                                    "Canvas ",
+	                                    React.createElement("i", { className: "fa fa-picture-o fa-lg", "aria-hidden": "true" })),
+	                                ' ',
+	                                React.createElement("a", { title: "Clear Output: CTRL + Shift + K", onClick: this.clear.bind(this) },
+	                                    "Clear ",
+	                                    React.createElement("i", { className: "fa fa-close fa-lg", "aria-hidden": "true" })))),
+	                        React.createElement(Editor_1.EditorComponent, { ref: (self) => this.outputEditor = self, name: "output", save: false, readOnly: true, fontSize: 10 })))));
 	    }
 	}
 	exports.AppComponent = AppComponent;
@@ -667,6 +691,7 @@
 /***/ function(module, exports) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
 	class State {
 	    static sendServiceEvent(label) {
 	        var evt = document.createEvent('CustomEvent');
@@ -684,7 +709,7 @@
 	        xhr.addEventListener("load", function () {
 	            cb.call(this);
 	        });
-	        xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
+	        xhr.open("POST", "//wasmexplorer-service-next.herokuapp.com/service.php", true);
 	        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	        xhr.send(command);
 	    }
@@ -721,6 +746,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
 	const React = __webpack_require__(1);
 	const State_1 = __webpack_require__(4);
 	class EditorComponent extends React.Component {
@@ -772,7 +798,7 @@
 	    onChange() {
 	    }
 	    render() {
-	        return React.createElement("div", {style: this.props.style, ref: (self) => this.container = self, className: "editorBody"});
+	        return React.createElement("div", { style: this.props.style, ref: (self) => this.container = self, className: "editorBody" });
 	    }
 	}
 	EditorComponent.defaultProps = {
@@ -794,6 +820,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
 	const React = __webpack_require__(1);
 	class CompilerOptionsComponent extends React.Component {
 	    constructor() {
@@ -802,21 +829,27 @@
 	        this.optimizationLevels = ["-O0", "-O1", "-O2", "-O3", "-O4", "-Os"];
 	        this.state = {
 	            dialect: "-std=C99",
-	            optimizationLevel: "-O3"
+	            optimizationLevel: "-O3",
+	            compilerVersion: 1
 	        };
 	    }
 	    componentDidMount() {
 	        if (this.props.options) {
-	            this.loadState(this.props.options);
+	            this.loadState(this.props.options, this.props.compilerVersion || 1);
 	        }
 	    }
 	    componentWillReceiveProps(props) {
 	        if (props.options) {
-	            this.loadState(props.options);
+	            this.loadState(props.options, props.compilerVersion);
 	        }
 	    }
 	    optimizationLevelChanged(e) {
 	        this.setState({ optimizationLevel: e.target.value }, () => {
+	            this.onChange();
+	        });
+	    }
+	    newCompilerChanged(e) {
+	        this.setState({ compilerVersion: e.target.checked ? 2 : 1 }, () => {
 	            this.onChange();
 	        });
 	    }
@@ -825,7 +858,7 @@
 	            this.onChange();
 	        });
 	    }
-	    loadState(options) {
+	    loadState(options, compilerVersion) {
 	        let s = {};
 	        options.split(" ").forEach(o => {
 	            if (o.indexOf("-O") == 0) {
@@ -835,6 +868,7 @@
 	                s.dialect = o;
 	            }
 	        });
+	        s.compilerVersion = compilerVersion;
 	        this.setState(s);
 	    }
 	    saveState() {
@@ -842,14 +876,20 @@
 	    }
 	    onChange() {
 	        if (this.props.onChange) {
-	            this.props.onChange(this.saveState());
+	            this.props.onChange(this.saveState(), this.state.compilerVersion);
 	        }
 	    }
 	    render() {
-	        return React.createElement("span", null, 
-	            React.createElement("select", {title: "Optimization Level", value: this.state.optimizationLevel, onChange: this.optimizationLevelChanged.bind(this)}, this.optimizationLevels.map(x => React.createElement("option", {key: x}, x))), 
-	            ' ', 
-	            React.createElement("select", {title: "Dialect", value: this.state.dialect, onChange: this.dialectChanged.bind(this)}, this.dialects.map(x => React.createElement("option", {key: x}, x))));
+	        return React.createElement("div", null,
+	            React.createElement("span", null,
+	                React.createElement("select", { title: "Optimization Level", value: this.state.optimizationLevel, onChange: this.optimizationLevelChanged.bind(this) }, this.optimizationLevels.map(x => React.createElement("option", { key: x }, x))),
+	                ' ',
+	                React.createElement("select", { title: "Dialect", value: this.state.dialect, onChange: this.dialectChanged.bind(this) }, this.dialects.map(x => React.createElement("option", { key: x }, x)))),
+	            React.createElement("br", null),
+	            React.createElement("span", null,
+	                React.createElement("label", null,
+	                    "New compiler:",
+	                    React.createElement("input", { type: "checkbox", checked: this.state.compilerVersion == 2, onChange: this.newCompilerChanged.bind(this) }))));
 	    }
 	}
 	exports.CompilerOptionsComponent = CompilerOptionsComponent;
@@ -860,6 +900,7 @@
 /***/ function(module, exports) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
 	function UTF8ArrayToString(u8Array, idx) {
 	    var endPtr = idx;
 	    while (u8Array[endPtr])
@@ -953,6 +994,8 @@
 	exports.lib = {
 	    log: null,
 	    showCanvas: null,
+	    currentInstance: null,
+	    syscall: null,
 	    UTF8ArrayToString: UTF8ArrayToString,
 	    setStackPtr: setStackPtr,
 	    dumpMemory: dumpMemory
@@ -964,6 +1007,44 @@
 /***/ function(module, exports) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	let memoryStates = new WeakMap();
+	function syscall(wasmInstance, n, args) {
+	    switch (n) {
+	        default:
+	            console.error("NYI syscall", arguments);
+	            throw new Error("NYI syscall");
+	        case 45:
+	            return 0;
+	        case 192:
+	            const memory = wasmInstance.exports.memory;
+	            let memoryState = memoryStates.get(wasmInstance);
+	            const requested = args[1];
+	            if (!memoryState) {
+	                memoryState = {
+	                    object: memory,
+	                    currentPosition: memory.buffer.byteLength,
+	                };
+	                memoryStates.set(wasmInstance, memoryState);
+	            }
+	            let cur = memoryState.currentPosition;
+	            if (cur + requested > memory.buffer.byteLength) {
+	                const need = Math.ceil((cur + requested - memory.buffer.byteLength) / 65536);
+	                memory.grow(need);
+	            }
+	            memoryState.currentPosition += requested;
+	            return cur;
+	    }
+	}
+	exports.syscall = syscall;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
 	class IFrameSandbox {
 	    constructor(...args) {
 	        var body = args.pop();
@@ -1012,14 +1093,14 @@
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.demangle = __webpack_require__(10);
+	exports.demangle = __webpack_require__(11);
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;/* WEBPACK VAR INJECTION */(function(process, __dirname, module) {/**
@@ -1087,10 +1168,10 @@
 	  module.exports = demangle;
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11), "/", __webpack_require__(12)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12), "/", __webpack_require__(13)(module)))
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -1276,7 +1357,7 @@
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
