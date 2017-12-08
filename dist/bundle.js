@@ -1009,7 +1009,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	let memoryStates = new WeakMap();
-	function syscall(wasmInstance, n, args) {
+	function syscall(wasmInstance, n, ...args) {
 	    switch (n) {
 	        default:
 	            console.error("NYI syscall", arguments);

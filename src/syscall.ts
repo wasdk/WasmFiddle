@@ -5,7 +5,7 @@ interface MemoryState {
 
 let memoryStates: WeakMap<any, MemoryState> = new WeakMap();
 
-export function syscall(wasmInstance: any, n: number, args: any[]) {
+export function syscall(wasmInstance: any, n: number, ...args: any[]) {
     switch (n) {
         default:
           console.error("NYI syscall", arguments);
