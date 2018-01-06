@@ -290,7 +290,9 @@ export class AppComponent extends React.Component<void, {
     let self = this;
     let main = this.mainEditor;
     let options = this.state.compilerOptions;
-    this.compileToWasm(main.editor.getValue(), options, (result: Uint8Array | string, wast: string, annotations: any[]) => {
+    let compilerVersion = this.state.compilerVersion;
+
+    const complete = (result: Uint8Array | string, wast: string, annotations: any[]) => {
       main.editor.getSession().clearAnnotations();
       if (annotations.length) {
         main.editor.getSession().setAnnotations(annotations);
@@ -300,8 +302,15 @@ export class AppComponent extends React.Component<void, {
       self.wasmCode = result as Uint8Array;
       self.wastAssembly = {};
       this.forceUpdate();
-    });
+    };
+
+    if (compilerVersion == 2) {
+      this.compileToWasmV2(main.editor.getValue(), options, complete);
+    } else {
+      this.compileToWasm(main.editor.getValue(), options, complete);
+    }
   }
+
   disassemble(json: any) {
     let self = this;
     if (typeof capstone === "undefined") {
@@ -453,7 +462,7 @@ export class AppComponent extends React.Component<void, {
     State.sendRequest("input=" + src + "&action=" + action + "&version=" + compilerVersion + "&options=" + options, function () {
       self.setState({ isCompiling: false } as any);
       if (!this.responseText) {
-        this.appendOutput("Something went wrong while compiling " + action + ".");
+        self.appendOutput("Something went wrong while compiling " + action + ".");
         State.sendAppEvent("error", "Compile to Wasm");
         return;
       }
@@ -473,6 +482,51 @@ export class AppComponent extends React.Component<void, {
         for (var i = 0; i < buffer.length; i++) {
           data[i] = buffer.charCodeAt(i);
         }
+        cb(data, self.wast, []);
+      });
+    });
+  }
+
+  compileToWasmV2(src: string, options: string, cb: (buffer: Uint8Array, wast: string, annotations?: any[]) => void) {
+    State.sendAppEvent("compile", "To Wasm");
+    let self = this;
+    let fileType = this.state.isC ? "c" : "cpp";
+    var project = {
+      output: "wasm",
+      files: [
+        {
+          type: fileType,
+          name: "file." + fileType,
+          options: options,
+          src: src
+        }
+      ]
+    };
+    let input = encodeURIComponent(JSON.stringify(project)).replace('%20', '+');
+    self.setState({ isCompiling: true } as any);
+    State.sendRequest("input=" + input + "&action=build", function () {
+      self.setState({ isCompiling: false } as any);
+      if (!this.responseText) {
+        self.appendOutput("Something went wrong while compiling.");
+        State.sendAppEvent("error", "Compile to Wasm");
+        return;
+      }
+      let annotations = State.getAnnotations(this.responseText);
+      if (annotations.length) {
+        cb(this.responseText, null, annotations);
+        State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
+        return;
+      }
+      const wasmBase64 = this.responseText;
+      var buffer = atob(wasmBase64);
+      var data = new Uint8Array(buffer.length);
+      for (var i = 0; i < buffer.length; i++) {
+        data[i] = buffer.charCodeAt(i);
+      }
+      self.setState({ isCompiling: true } as any);
+      State.sendRequest("input=" + encodeURIComponent(wasmBase64) + "&action=" + "wasm2wast" + "&options=" + options, function () {
+        self.setState({ isCompiling: false } as any);
+        self.wast = this.responseText;
         cb(data, self.wast, []);
       });
     });

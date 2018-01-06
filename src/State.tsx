@@ -2,7 +2,8 @@ declare var WebAssembly: any;
 
 import { EditorComponent } from "./components/Editor";
 import { AppComponent } from "./App";
-import { lib } from "./lib"
+import { lib } from "./lib";
+import { WasmFiddleConfig } from "./config";
 
 export class State {
   static sendServiceEvent(label: string) {
@@ -25,7 +26,7 @@ export class State {
     xhr.addEventListener("load", function () {
       cb.call(this);
     });
-    xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
+    xhr.open("POST", WasmFiddleConfig.serviceURL, true);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     xhr.send(command);
   }
@@ -33,7 +34,8 @@ export class State {
   static getAnnotations(response: string) {
     // Parse and annotate errors if compilation fails.
     var annotations: any[] = [];
-    if (response.indexOf("(module") !== 0) {
+    if (response.indexOf("(module") !== 0 &&
+        response.indexOf("AGFzbQE") !== 0) {
       var re = /^.*?:(\d+?):(\d+?):(.*)$/gm;
       var m: any;
       while ((m = re.exec(response)) !== null) {

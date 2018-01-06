@@ -77,12 +77,12 @@
 	Object.defineProperty(exports, "__esModule", { value: true });
 	const React = __webpack_require__(1);
 	const State_1 = __webpack_require__(4);
-	const Editor_1 = __webpack_require__(5);
-	const CompilerOptions_1 = __webpack_require__(6);
-	const lib_1 = __webpack_require__(7);
-	const syscall_1 = __webpack_require__(8);
-	const iframesandbox_1 = __webpack_require__(9);
-	let { demangle } = __webpack_require__(10);
+	const Editor_1 = __webpack_require__(6);
+	const CompilerOptions_1 = __webpack_require__(7);
+	const lib_1 = __webpack_require__(8);
+	const syscall_1 = __webpack_require__(9);
+	const iframesandbox_1 = __webpack_require__(10);
+	let { demangle } = __webpack_require__(11);
 	function lazyLoad(s, cb) {
 	    var self = this;
 	    var d = window.document;
@@ -320,7 +320,8 @@
 	        let self = this;
 	        let main = this.mainEditor;
 	        let options = this.state.compilerOptions;
-	        this.compileToWasm(main.editor.getValue(), options, (result, wast, annotations) => {
+	        let compilerVersion = this.state.compilerVersion;
+	        const complete = (result, wast, annotations) => {
 	            main.editor.getSession().clearAnnotations();
 	            if (annotations.length) {
 	                main.editor.getSession().setAnnotations(annotations);
@@ -330,7 +331,13 @@
 	            self.wasmCode = result;
 	            self.wastAssembly = {};
 	            this.forceUpdate();
-	        });
+	        };
+	        if (compilerVersion == 2) {
+	            this.compileToWasmV2(main.editor.getValue(), options, complete);
+	        }
+	        else {
+	            this.compileToWasm(main.editor.getValue(), options, complete);
+	        }
 	    }
 	    disassemble(json) {
 	        let self = this;
@@ -482,7 +489,7 @@
 	        State_1.State.sendRequest("input=" + src + "&action=" + action + "&version=" + compilerVersion + "&options=" + options, function () {
 	            self.setState({ isCompiling: false });
 	            if (!this.responseText) {
-	                this.appendOutput("Something went wrong while compiling " + action + ".");
+	                self.appendOutput("Something went wrong while compiling " + action + ".");
 	                State_1.State.sendAppEvent("error", "Compile to Wasm");
 	                return;
 	            }
@@ -502,6 +509,50 @@
 	                for (var i = 0; i < buffer.length; i++) {
 	                    data[i] = buffer.charCodeAt(i);
 	                }
+	                cb(data, self.wast, []);
+	            });
+	        });
+	    }
+	    compileToWasmV2(src, options, cb) {
+	        State_1.State.sendAppEvent("compile", "To Wasm");
+	        let self = this;
+	        let fileType = this.state.isC ? "c" : "cpp";
+	        var project = {
+	            output: "wasm",
+	            files: [
+	                {
+	                    type: fileType,
+	                    name: "file." + fileType,
+	                    options: options,
+	                    src: src
+	                }
+	            ]
+	        };
+	        let input = encodeURIComponent(JSON.stringify(project)).replace('%20', '+');
+	        self.setState({ isCompiling: true });
+	        State_1.State.sendRequest("input=" + input + "&action=build", function () {
+	            self.setState({ isCompiling: false });
+	            if (!this.responseText) {
+	                self.appendOutput("Something went wrong while compiling.");
+	                State_1.State.sendAppEvent("error", "Compile to Wasm");
+	                return;
+	            }
+	            let annotations = State_1.State.getAnnotations(this.responseText);
+	            if (annotations.length) {
+	                cb(this.responseText, null, annotations);
+	                State_1.State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
+	                return;
+	            }
+	            const wasmBase64 = this.responseText;
+	            var buffer = atob(wasmBase64);
+	            var data = new Uint8Array(buffer.length);
+	            for (var i = 0; i < buffer.length; i++) {
+	                data[i] = buffer.charCodeAt(i);
+	            }
+	            self.setState({ isCompiling: true });
+	            State_1.State.sendRequest("input=" + encodeURIComponent(wasmBase64) + "&action=" + "wasm2wast" + "&options=" + options, function () {
+	                self.setState({ isCompiling: false });
+	                self.wast = this.responseText;
 	                cb(data, self.wast, []);
 	            });
 	        });
@@ -688,10 +739,11 @@
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
+	const config_1 = __webpack_require__(5);
 	class State {
 	    static sendServiceEvent(label) {
 	        var evt = document.createEvent('CustomEvent');
@@ -709,14 +761,15 @@
 	        xhr.addEventListener("load", function () {
 	            cb.call(this);
 	        });
-	        xhr.open("POST", "//wasmexplorer-service.herokuapp.com/service.php", true);
+	        xhr.open("POST", config_1.WasmFiddleConfig.serviceURL, true);
 	        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	        xhr.send(command);
 	    }
 	    static getAnnotations(response) {
 	        // Parse and annotate errors if compilation fails.
 	        var annotations = [];
-	        if (response.indexOf("(module") !== 0) {
+	        if (response.indexOf("(module") !== 0 &&
+	            response.indexOf("AGFzbQE") !== 0) {
 	            var re = /^.*?:(\d+?):(\d+?):(.*)$/gm;
 	            var m;
 	            while ((m = re.exec(response)) !== null) {
@@ -743,6 +796,18 @@
 
 /***/ },
 /* 5 */
+/***/ function(module, exports) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.WasmFiddleConfig = {
+	    version: "2.0",
+	    serviceURL: "//wasmexplorer-service.herokuapp.com/service.php",
+	};
+
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -816,7 +881,7 @@
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -896,7 +961,7 @@
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1003,7 +1068,7 @@
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1040,7 +1105,7 @@
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1093,14 +1158,14 @@
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.demangle = __webpack_require__(11);
+	exports.demangle = __webpack_require__(12);
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;/* WEBPACK VAR INJECTION */(function(process, __dirname, module) {/**
@@ -1168,10 +1233,10 @@
 	  module.exports = demangle;
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12), "/", __webpack_require__(13)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13), "/", __webpack_require__(14)(module)))
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -1357,7 +1422,7 @@
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
