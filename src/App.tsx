@@ -487,7 +487,7 @@ export class AppComponent extends React.Component<void, {
     });
   }
 
-  compileToWasmV2(src: string, options: string, cb: (buffer: Uint8Array, wast: string, annotations?: any[]) => void) {
+  compileToWasmV2(src: string, options: string, cb: (buffer: Uint8Array|string, wast: string, annotations?: any[]) => void) {
     State.sendAppEvent("compile", "To Wasm");
     let self = this;
     let fileType = this.state.isC ? "c" : "cpp";
@@ -513,16 +513,13 @@ export class AppComponent extends React.Component<void, {
       }
       let annotations = State.getAnnotations(this.responseText);
       if (annotations.length) {
-        cb(this.responseText, null, annotations);
+        cb(State.getOutput(this.responseText), null, annotations);
         State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
         return;
       }
-      const wasmBase64 = this.responseText;
-      var buffer = atob(wasmBase64);
-      var data = new Uint8Array(buffer.length);
-      for (var i = 0; i < buffer.length; i++) {
-        data[i] = buffer.charCodeAt(i);
-      }
+      const data = State.getResultBinary(this.responseText);
+      const wasmBase64 = btoa(Array.prototype.map.call(data,
+        (ch: number) => String.fromCharCode(ch)).join(''));
       self.setState({ isCompiling: true } as any);
       State.sendRequest("input=" + encodeURIComponent(wasmBase64) + "&action=" + "wasm2wast" + "&options=" + options, function () {
         self.setState({ isCompiling: false } as any);

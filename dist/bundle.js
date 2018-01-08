@@ -539,16 +539,12 @@
 	            }
 	            let annotations = State_1.State.getAnnotations(this.responseText);
 	            if (annotations.length) {
-	                cb(this.responseText, null, annotations);
+	                cb(State_1.State.getOutput(this.responseText), null, annotations);
 	                State_1.State.sendAppEvent("error", "Compile to Wasm (Error or Warnings)");
 	                return;
 	            }
-	            const wasmBase64 = this.responseText;
-	            var buffer = atob(wasmBase64);
-	            var data = new Uint8Array(buffer.length);
-	            for (var i = 0; i < buffer.length; i++) {
-	                data[i] = buffer.charCodeAt(i);
-	            }
+	            const data = State_1.State.getResultBinary(this.responseText);
+	            const wasmBase64 = btoa(Array.prototype.map.call(data, (ch) => String.fromCharCode(ch)).join(''));
 	            self.setState({ isCompiling: true });
 	            State_1.State.sendRequest("input=" + encodeURIComponent(wasmBase64) + "&action=" + "wasm2wast" + "&options=" + options, function () {
 	                self.setState({ isCompiling: false });
@@ -765,29 +761,77 @@
 	        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	        xhr.send(command);
 	    }
-	    static getAnnotations(response) {
-	        // Parse and annotate errors if compilation fails.
-	        var annotations = [];
+	    static getOutput(response) {
+	        if (/^\{.*\}$/.test(response)) {
+	            try {
+	                const obj = JSON.parse(response);
+	                if (obj.success) {
+	                    return '';
+	                }
+	                else {
+	                    return (!obj.tasks ? '' :
+	                        obj.tasks.map((t) => '===== ' + t.name + '\n' + t.output)
+	                            .join('\n') + '\n') + 'ERROR: ' + obj.message;
+	                }
+	            }
+	            catch (e) {
+	                // Ignore invalid JSON
+	            }
+	            // Fall through
+	        }
 	        if (response.indexOf("(module") !== 0 &&
 	            response.indexOf("AGFzbQE") !== 0) {
-	            var re = /^.*?:(\d+?):(\d+?):(.*)$/gm;
-	            var m;
-	            while ((m = re.exec(response)) !== null) {
-	                if (m.index === re.lastIndex) {
-	                    re.lastIndex++;
-	                }
-	                var line = parseInt(m[1]) - 1;
-	                var column = parseInt(m[2]) - 1;
-	                var message = m[3];
-	                annotations.push({
-	                    row: line,
-	                    column: column,
-	                    text: message,
-	                    type: message.indexOf("error") >= 0 ? "error" : "warning" // also warning and information
-	                });
+	            return response;
+	        }
+	        else {
+	            return '';
+	        }
+	    }
+	    static getAnnotations(response) {
+	        var output = State.getOutput(response);
+	        // Parse and annotate errors if compilation fails.
+	        var annotations = [];
+	        if (!output) {
+	            return annotations;
+	        }
+	        var re = /^.*?:(\d+?):(\d+?):(.*)$/gm;
+	        var m;
+	        while ((m = re.exec(output)) !== null) {
+	            if (m.index === re.lastIndex) {
+	                re.lastIndex++;
 	            }
+	            var line = parseInt(m[1]) - 1;
+	            var column = parseInt(m[2]) - 1;
+	            var message = m[3];
+	            annotations.push({
+	                row: line,
+	                column: column,
+	                text: message,
+	                type: message.indexOf("error") >= 0 ? "error" : "warning" // also warning and information
+	            });
 	        }
 	        return annotations;
+	    }
+	    static getResultBinary(response) {
+	        if (/^\{.*\}$/.test(response)) {
+	            try {
+	                const obj = JSON.parse(response);
+	                if (!obj.success) {
+	                    return null;
+	                }
+	                response = obj.output;
+	            }
+	            catch (e) {
+	                // Ignore invalid JSON
+	            }
+	            // Fall through
+	        }
+	        var buffer = atob(response);
+	        var data = new Uint8Array(buffer.length);
+	        for (var i = 0; i < buffer.length; i++) {
+	            data[i] = buffer.charCodeAt(i);
+	        }
+	        return data;
 	    }
 	}
 	State.fiddleURI = "";
