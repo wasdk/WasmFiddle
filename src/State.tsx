@@ -39,7 +39,7 @@ export class State {
           return '';
         } else {
           return (!obj.tasks ? '' :
-            obj.tasks.map((t : any) => '===== ' + t.name + '\n' + t.output)
+            obj.tasks.map((t : any) => '===== ' + t.name + '\n' + t.console)
             .join('\n') + '\n') + 'ERROR: ' + obj.message;
         }
       } catch (e) {

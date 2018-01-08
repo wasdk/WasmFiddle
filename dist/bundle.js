@@ -770,7 +770,7 @@
 	                }
 	                else {
 	                    return (!obj.tasks ? '' :
-	                        obj.tasks.map((t) => '===== ' + t.name + '\n' + t.output)
+	                        obj.tasks.map((t) => '===== ' + t.name + '\n' + t.console)
 	                            .join('\n') + '\n') + 'ERROR: ' + obj.message;
 	                }
 	            }
@@ -845,7 +845,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.WasmFiddleConfig = {
-	    version: "2.0",
+	    version: "2.1",
 	    serviceURL: "//wasmexplorer-service.herokuapp.com/service.php",
 	};
 
