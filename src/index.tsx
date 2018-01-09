@@ -3,9 +3,8 @@ import * as ReactDOM from "react-dom";
 
 import { AppComponent } from "./App"
 
-declare var WebAssembly: any;
 
-if (typeof WebAssembly === "object") {
+if ('WebAssembly' in window) {
   ReactDOM.render(
     <AppComponent />,
     document.getElementById("app")

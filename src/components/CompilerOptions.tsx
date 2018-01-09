@@ -11,8 +11,8 @@ export class CompilerOptionsComponent extends React.Component<{
   compilerVersion?: number;
   onChange?: (options: string, version: number) => void
 }, CompilerOptionsComponentState> {
-  constructor () {
-    super();
+  constructor(props: any) {
+    super(props);
     this.state = {
       dialect: "-std=C99",
       optimizationLevel: "-O3",
@@ -34,18 +34,18 @@ export class CompilerOptionsComponent extends React.Component<{
     }
   }
   optimizationLevelChanged(e: any) {
-    this.setState({optimizationLevel: e.target.value} as any, () => {
+    this.setState({ optimizationLevel: e.target.value } as any, () => {
       this.onChange();
     });
   }
   newCompilerChanged(e: any) {
-    this.setState({compilerVersion: e.target.checked ? 2 : 1} as any, () => {
+    this.setState({ compilerVersion: e.target.checked ? 2 : 1 } as any, () => {
       this.onChange();
     })
   }
 
   dialectChanged(e: any) {
-    this.setState({dialect: e.target.value} as any, () => {
+    this.setState({ dialect: e.target.value } as any, () => {
       this.onChange();
     });
   }
@@ -77,16 +77,16 @@ export class CompilerOptionsComponent extends React.Component<{
     return <div>
       <span>
         <select title="Optimization Level" value={this.state.optimizationLevel} onChange={this.optimizationLevelChanged.bind(this)}>
-          { this.optimizationLevels.map(x => <option key={x}>{x}</option>) }
+          {this.optimizationLevels.map(x => <option key={x}>{x}</option>)}
         </select>{' '}
         <select title="Dialect" value={this.state.dialect} onChange={this.dialectChanged.bind(this)}>
-          { this.dialects.map(x => <option key={x}>{x}</option>) }
+          {this.dialects.map(x => <option key={x}>{x}</option>)}
         </select>
-      </span><br/>
+      </span><br />
       <span>
         <label>
           New compiler:
-          <input type="checkbox" checked={this.state.compilerVersion == 2} onChange={this.newCompilerChanged.bind(this)}/>
+          <input type="checkbox" checked={this.state.compilerVersion == 2} onChange={this.newCompilerChanged.bind(this)} />
         </label>
       </span>
     </div>

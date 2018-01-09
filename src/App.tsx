@@ -110,7 +110,7 @@ const defaultHarnessText =
   `var wasmInstance = new WebAssembly.Instance(wasmModule, wasmImports);\n` +
   `log(wasmInstance.exports.main());\n`;
 
-export class AppComponent extends React.Component<void, {
+export class AppComponent extends React.Component<any, {
   compilerOptions: string,
   compilerVersion: number,
   isCompiling: boolean;
@@ -121,8 +121,8 @@ export class AppComponent extends React.Component<void, {
   showHelp: boolean;
 }> {
 
-  constructor() {
-    super();
+  constructor(props: any) {
+    super(props);
     this.installKeyboardShortcuts();
     State.app = this;
     this.state = {
@@ -324,7 +324,7 @@ export class AppComponent extends React.Component<void, {
     function go() {
       let s = "";
       var cs = new capstone.Cs(capstone.ARCH_X86, capstone.MODE_64);
-      var annotations: any [] = [];
+      var annotations: any[] = [];
       var assemblyInstructionsByAddress = Object.create(null);
       for (var i = 0; i < json.regions.length; i++) {
         var region = json.regions[i];
@@ -332,7 +332,7 @@ export class AppComponent extends React.Component<void, {
         var csBuffer = decodeRestrictedBase64ToBytes(region.bytes);
         var instructions = cs.disasm(csBuffer, region.entry);
         var basicBlocks: any = {};
-        instructions.forEach(function(instr: any, i: any) {
+        instructions.forEach(function (instr: any, i: any) {
           assemblyInstructionsByAddress[instr.address] = instr;
           if (isBranch(instr)) {
             var targetAddress = parseInt(instr.op_str);
@@ -345,7 +345,7 @@ export class AppComponent extends React.Component<void, {
             }
           }
         });
-        instructions.forEach(function(instr: any) {
+        instructions.forEach(function (instr: any) {
           if (basicBlocks[instr.address]) {
             s += " " + padRight(toAddress(instr.address) + ":", 39, " ");
             if (basicBlocks[instr.address].length > 0) {
@@ -379,7 +379,7 @@ export class AppComponent extends React.Component<void, {
       self.appendOutput(String(x));
     };
     lib.showCanvas = function (x: boolean = true) {
-      self.setState({showCanvas: x} as any);
+      self.setState({ showCanvas: x } as any);
     };
     lib.currentInstance = null;
     lib.syscall = syscall;
@@ -407,10 +407,10 @@ export class AppComponent extends React.Component<void, {
           for (let j = 0; j < num; j++)
             args.push(', ', String.fromCharCode(97 + j));
           wasmImports[i.module][i.name] =
-          `    // ${name}\n` +
-          `    ${i.name}: function ${i.name} (n${args.join('')}) {\n` +
-          `      return lib.syscall(wasmInstance, n${args.join('')});\n` +
-          `    }`;
+            `    // ${name}\n` +
+            `    ${i.name}: function ${i.name} (n${args.join('')}) {\n` +
+            `      return lib.syscall(wasmInstance, n${args.join('')});\n` +
+            `    }`;
         } else {
           wasmImports[i.module][i.name] = function () {
             if (!lib.currentInstance) {
@@ -425,10 +425,10 @@ export class AppComponent extends React.Component<void, {
         let name = demangle("_" + i.name);
         if (string) {
           wasmImports[i.module][i.name] =
-          `    // ${name}\n` +
-          `    ${i.name}: function ${i.name} () {\n` +
-          `      // ...\n` +
-          `    }`;
+            `    // ${name}\n` +
+            `    ${i.name}: function ${i.name} () {\n` +
+            `      // ...\n` +
+            `    }`;
         } else {
           wasmImports[i.module][i.name] = function () {
             lib.log(`NYI: ${i.name} ${name}`);
@@ -487,7 +487,7 @@ export class AppComponent extends React.Component<void, {
     });
   }
 
-  compileToWasmV2(src: string, options: string, cb: (buffer: Uint8Array|string, wast: string, annotations?: any[]) => void) {
+  compileToWasmV2(src: string, options: string, cb: (buffer: Uint8Array | string, wast: string, annotations?: any[]) => void) {
     State.sendAppEvent("compile", "To Wasm");
     let self = this;
     let fileType = this.state.isC ? "c" : "cpp";
@@ -538,13 +538,13 @@ export class AppComponent extends React.Component<void, {
     State.sendAppEvent("save", "Fiddle state to URI");
   }
   toggleCanvas() {
-    this.setState({showCanvas: !this.state.showCanvas} as any);
+    this.setState({ showCanvas: !this.state.showCanvas } as any);
   }
   toggleSettings() {
-    this.setState({showSettings: !this.state.showSettings} as any);
+    this.setState({ showSettings: !this.state.showSettings } as any);
   }
   toggleHelp() {
-    this.setState({showHelp: !this.state.showHelp} as any);
+    this.setState({ showHelp: !this.state.showHelp } as any);
   }
   clear() {
     this.outputEditor.editor.setValue("");
@@ -586,7 +586,7 @@ export class AppComponent extends React.Component<void, {
       <a style={{ display: "none" }} ref={(self: any) => this.downloadLink = self} />
       <div className="gHeader">
         <div>
-          <div className="canvasOverlay" style={{display: this.state.showCanvas ? "" : "none"}}>
+          <div className="canvasOverlay" style={{ display: this.state.showCanvas ? "" : "none" }}>
             <div className="editorHeader">
               <span className="editorHeaderTitle">
                 Canvas
@@ -597,9 +597,9 @@ export class AppComponent extends React.Component<void, {
             </div>
             <canvas className="outputCanvas" ref={(self: any) => this.canvas = self} width={1200} height={1200} />
           </div>
-          <div className="settingsOverlay" style={{display: this.state.showSettings ? "" : "none"}}>
+          <div className="settingsOverlay" style={{ display: this.state.showSettings ? "" : "none" }}>
             <span className="editorHeaderTitle">
-                Settings
+              Settings
               </span>
             <div className="editorHeader">
               <div className="editorHeaderButtons">
@@ -613,7 +613,7 @@ export class AppComponent extends React.Component<void, {
               <CompilerOptionsComponent options={this.state.compilerOptions} compilerVersion={this.state.compilerVersion} onChange={this.compilerOptionsChanged.bind(this)} />{' '}
             </div>
           </div>
-          <div className="helpOverlay" style={{display: this.state.showHelp ? "" : "none"}}>
+          <div className="helpOverlay" style={{ display: this.state.showHelp ? "" : "none" }}>
             <div className="editorHeader">
               <span className="editorHeaderTitle">
                 Help

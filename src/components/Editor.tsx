@@ -16,7 +16,7 @@ export class EditorComponent extends React.Component<{
   showLineNumbers?: boolean;
   fontSize?: number;
   style?: any;
-}, void> {
+}, any> {
   container: HTMLDivElement;
   public editor: any;
   public static defaultProps = {
@@ -81,6 +81,6 @@ export class EditorComponent extends React.Component<{
 
   }
   render(): any {
-    return <div style={this.props.style} ref={(self: any) => this.container = self} className="editorBody"/>
+    return <div style={this.props.style} ref={(self: any) => this.container = self} className="editorBody" />
   }
 }
