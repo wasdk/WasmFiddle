@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack --config config/webpack.config.js",
     "build-watch": "webpack --watch --config config/webpack.config.js",
-    "dev-server": "./node_modules/webpack-dev-server/bin/webpack-dev-server.js --config config/webpack.config.js"
+    "dev-server": "webpack-dev-server --config config/webpack.config.js"
   },
   "keywords": [],
   "author": "",
