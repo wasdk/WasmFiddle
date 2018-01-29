@@ -598,10 +598,10 @@ export class AppComponent extends React.Component<any, {
             <canvas className="outputCanvas" ref={(self: any) => this.canvas = self} width={1200} height={1200} />
           </div>
           <div className="settingsOverlay" style={{ display: this.state.showSettings ? "" : "none" }}>
+            <div className="editorHeader">
             <span className="editorHeaderTitle">
               Settings
-              </span>
-            <div className="editorHeader">
+              </span>              
               <div className="editorHeaderButtons">
                 <a title="Toggle Settings" onClick={this.toggleSettings.bind(this)}>Hide <i className="fa fa-window-close fa-lg" aria-hidden="true"></i></a>
               </div>
