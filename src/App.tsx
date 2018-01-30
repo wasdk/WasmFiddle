@@ -1,5 +1,4 @@
 import * as React from "react";
-import * as ReactSplitPane from "react-split-pane";
 import { State } from "./State";
 import { EditorComponent } from "./components/Editor";
 import { CompilerOptionsComponent } from "./components/CompilerOptions";
