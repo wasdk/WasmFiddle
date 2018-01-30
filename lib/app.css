@@ -26,7 +26,7 @@ html, body {
   height: 100%;
   width: 100%;
   grid-template-rows: 100%;
-  grid-template-columns: 40px auto 160px;
+  grid-template-columns: 40px auto 170px;
 }
 
 .gShareURI {
@@ -74,6 +74,15 @@ html, body {
   padding-right: 4px;
 }
 
+.toastHeader {
+  color: white;
+  width: auto;
+  height: 32px;
+  line-height: 22px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 .editorBody {
   width: 100%;
   height: calc(100% - 32px);
@@ -105,6 +114,14 @@ html, body {
   color: #32a9e6;
   font-size: 11px;
   font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+}
+
+.toastSpan {
+  padding-top: 4px;
+  font-size: 11px;
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+  text-decoration: underline;
+  color: #fff;
 }
 
 .settingSection, .helpSection {
@@ -143,11 +160,6 @@ html, body {
   height: 32px;
 }
 
-.fa-cloud-upload:hover {
-    color: #87ec8d;
-    cursor: pointer;
-}
-
 a:hover {
   color: #87ec8d;
   cursor: pointer;
@@ -182,6 +194,36 @@ a:hover {
   border-radius: 1em;
 }
 
+.toast-container {
+  position: fixed;
+  margin: 0 auto;
+  left:0 ;
+  right: 0;
+  z-index: 99;
+  width: 350px;
+}
+
+.toast-container>div {
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.toast {
+  position: relative;
+  margin-right: auto;
+  margin-left: auto;
+  width: 330px;
+  height: 22px;
+  z-index: 20;
+  opacity: 1;
+  background-color: rgba(20, 20, 20, 0.9);
+  padding-left: 10px;
+  vertical-align: middle;
+  color: white;
+  padding: 10px;
+  font-size: 11px;
+  border-radius: 1em;
+}
 
 .notSupported {
   top: 0;
