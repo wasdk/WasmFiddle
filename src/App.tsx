@@ -1,8 +1,8 @@
 import * as React from "react";
-import * as ReactSplitPane from "react-split-pane";
 import { State } from "./State";
 import { EditorComponent } from "./components/Editor";
 import { CompilerOptionsComponent } from "./components/CompilerOptions";
+import { ToastContainer } from "./components/Toast";
 import { lib } from "./lib"
 import { syscall } from "./syscall";
 import { IFrameSandbox } from "./iframesandbox";
@@ -111,6 +111,7 @@ const defaultHarnessText =
   `log(wasmInstance.exports.main());\n`;
 
 export class AppComponent extends React.Component<any, {
+  toasts: Array<Object>,
   compilerOptions: string,
   compilerVersion: number,
   isCompiling: boolean;
@@ -126,6 +127,7 @@ export class AppComponent extends React.Component<any, {
     this.installKeyboardShortcuts();
     State.app = this;
     this.state = {
+      toasts: [],
       compilerOptions: "-O3 -std=C99",
       compilerVersion: 1,
       isCompiling: false,
@@ -197,6 +199,20 @@ export class AppComponent extends React.Component<any, {
 
   }
 
+  exportFiddleToGist() {
+    var xhr = new XMLHttpRequest();
+    let self = this;
+    xhr.addEventListener("load", function () {
+      let gist_url = JSON.parse(this.response).html_url;
+      self.setState(prevState => ({
+        toasts: [...prevState.toasts, {"url" : gist_url }]
+      }));
+    });
+    xhr.open("POST", "https://api.github.com/gists", true);
+    xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
+    xhr.send(JSON.stringify(this.jsonForGist()));
+  }
+
   loadFiddledStateFromURI(fiddleURI: string) {
     State.fiddleURI = fiddleURI;
     var xhr = new XMLHttpRequest();
@@ -244,6 +260,26 @@ export class AppComponent extends React.Component<any, {
     }
   }
 
+  jsonForGist() {
+    let gistDescription: string = "source: http://wasmfiddle.com";
+    let fiddleURI: string = State.fiddleURI;
+    if (fiddleURI) {
+      gistDescription += "/?" + fiddleURI;
+    }
+    return {
+      description: gistDescription,
+      public: "true",
+      files: {
+        "main.c": {
+          content: this.mainEditor.editor.getValue()
+        },
+        "harness.js": {
+          content: this.harnessEditor.editor.getValue()
+        }
+      }
+    }
+  }
+
   saveFiddleState() {
     return {
       editors: {
@@ -254,6 +290,7 @@ export class AppComponent extends React.Component<any, {
       compilerVersion: this.state.compilerVersion
     }
   }
+
   loadFiddledState(fiddleState: any) {
     // For backwards compatibility.
     if (fiddleState.editors["main.c"]) {
@@ -533,6 +570,9 @@ export class AppComponent extends React.Component<any, {
     this.outputEditor.editor.insert(s + "\n");
     this.outputEditor.editor.gotoLine(Infinity);
   }
+  exportFiddle() {
+    this.exportFiddleToGist();
+  }
   share() {
     this.saveFiddleStateToURI();
     State.sendAppEvent("save", "Fiddle state to URI");
@@ -548,6 +588,11 @@ export class AppComponent extends React.Component<any, {
   }
   clear() {
     this.outputEditor.editor.setValue("");
+  }
+  dismissToast(index: number){
+    this.setState((prevState:any) => ({
+      toasts: prevState.toasts.filter((key:number, value:number) => value !== index )
+    }));
   }
   downloadLink: HTMLAnchorElement = null;
   onViewChanged(e: any) {
@@ -582,10 +627,12 @@ export class AppComponent extends React.Component<any, {
         }
       }
     }
+
     return <div className="gAppContainer">
       <a style={{ display: "none" }} ref={(self: any) => this.downloadLink = self} />
       <div className="gHeader">
         <div>
+          <ToastContainer toasts={this.state.toasts} dismiss={this.dismissToast.bind(this)}/>
           <div className="canvasOverlay" style={{ display: this.state.showCanvas ? "" : "none" }}>
             <div className="editorHeader">
               <span className="editorHeaderTitle">
@@ -598,10 +645,10 @@ export class AppComponent extends React.Component<any, {
             <canvas className="outputCanvas" ref={(self: any) => this.canvas = self} width={1200} height={1200} />
           </div>
           <div className="settingsOverlay" style={{ display: this.state.showSettings ? "" : "none" }}>
+            <div className="editorHeader">
             <span className="editorHeaderTitle">
               Settings
               </span>
-            <div className="editorHeader">
               <div className="editorHeaderButtons">
                 <a title="Toggle Settings" onClick={this.toggleSettings.bind(this)}>Hide <i className="fa fa-window-close fa-lg" aria-hidden="true"></i></a>
               </div>
@@ -682,7 +729,8 @@ export class AppComponent extends React.Component<any, {
           <a className={this.wasmCode ? "" : "disabled-link"} title="Run: CTRL + Return" onClick={this.runHarness.bind(this)}><i className="fa fa-play-circle fa-lg" aria-hidden="true"></i></a>{' '}
           <a title="Toggle Settings" onClick={this.toggleSettings.bind(this)}><i className="fa fa-wrench fa-lg" aria-hidden="true"></i></a>{' '}
           <a title="Toggle Help" onClick={this.toggleHelp.bind(this)}><i className="fa fa-book fa-lg" aria-hidden="true"></i></a>{' '}
-          <i title="Share" onClick={this.share.bind(this)} className="fa fa-cloud-upload fa-lg" aria-hidden="true"></i>
+          <a title="Export to Gist" onClick={this.exportFiddle.bind(this)}><i className="fa fa-github fa-lg" aria-hidden="true"></i></a>{' '}
+          <a title="Share" onClick={this.share.bind(this)}><i className="fa fa-cloud-upload fa-lg" aria-hidden="true"></i></a>
         </div>
       </div>
       <div>
