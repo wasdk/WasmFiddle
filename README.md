@@ -2,6 +2,10 @@ WasmFiddle
 ====
 This repository contains the WasmFiddle website source code.
 
+Deprecation notice
+====
+The project scope was extended. We created a new repository at https://github.com/wasdk/WebAssemblyStudio -- the development will be continued there.
+
 Running your own local copy of the website
 ===
 
