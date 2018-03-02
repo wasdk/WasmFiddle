@@ -358,8 +358,8 @@ class AppComponent extends React.Component {
             name = "program.wasm";
         }
         else if (what == "wast") {
-            url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], { type: 'text/wast' }));
-            name = "program.wast";
+            url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], { type: 'text/wat' }));
+            name = "program.wat";
         }
         else {
             return;
@@ -840,7 +840,7 @@ class AppComponent extends React.Component {
                                 React.createElement("option", { value: "x86-baseline" }, "Firefox x86 Baseline")),
                             React.createElement("div", { className: "editorHeaderButtons" },
                                 React.createElement("a", { className: this.wasmCode ? "" : "disabled-link", title: "Download WebAssembly Text", onClick: this.download.bind(this, "wast") },
-                                    "Wast ",
+                                    "Wat ",
                                     React.createElement("i", { className: "fa fa-download fa-lg", "aria-hidden": "true" })),
                                 ' ',
                                 React.createElement("a", { className: this.wasmCode ? "" : "disabled-link", title: "Download WebAssembly Binary", onClick: this.download.bind(this, "wasm") },
@@ -872,7 +872,7 @@ exports.AppComponent = AppComponent;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WasmFiddleConfig = {
-    version: "2.1",
+    version: "2.2",
     serviceURL: "//wasmexplorer-service.herokuapp.com/service.php",
 };
 

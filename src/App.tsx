@@ -180,8 +180,8 @@ export class AppComponent extends React.Component<any, {
       url = URL.createObjectURL(new Blob([this.wasmCode], { type: 'application/wasm' }));
       name = "program.wasm";
     } else if (what == "wast") {
-      url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], { type: 'text/wast' }));
-      name = "program.wast";
+      url = URL.createObjectURL(new Blob([this.viewEditor.editor.getValue()], { type: 'text/wat' }));
+      name = "program.wat";
     } else {
       return;
     }
@@ -719,7 +719,7 @@ export class AppComponent extends React.Component<any, {
               </select>
               <div className="editorHeaderButtons">
                 {/*<a title="Assemble" onClick={this.assemble.bind(this)}>Assemble <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>*/}
-                <a className={this.wasmCode ? "" : "disabled-link"} title="Download WebAssembly Text" onClick={this.download.bind(this, "wast")}>Wast <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>{' '}
+                <a className={this.wasmCode ? "" : "disabled-link"} title="Download WebAssembly Text" onClick={this.download.bind(this, "wast")}>Wat <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>{' '}
                 <a className={this.wasmCode ? "" : "disabled-link"} title="Download WebAssembly Binary" onClick={this.download.bind(this, "wasm")}>Wasm <i className="fa fa-download fa-lg" aria-hidden="true"></i></a>
               </div>
             </div>
